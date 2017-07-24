@@ -1,0 +1,42 @@
+[
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_fade_in.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_fade_in.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_popup_exit.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_popup_exit.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_slide_in_bottom.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_slide_in_bottom.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_shrink_fade_out_from_bottom.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_shrink_fade_out_from_bottom.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_slide_out_bottom.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_slide_out_bottom.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_slide_in_top.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_slide_in_top.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_popup_enter.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_popup_enter.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_slide_out_top.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_slide_out_top.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_fade_out.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_fade_out.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/anim/abc_grow_fade_in_from_bottom.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/anim/abc_grow_fade_in_from_bottom.xml"
+    }
+]

@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/mipmap-mdpi/ic_launcher_round.png",
+        "source": "/home/maghob/root/android_cartographer/app/src/main/res/mipmap-mdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/mipmap-mdpi/ic_launcher.png",
+        "source": "/home/maghob/root/android_cartographer/app/src/main/res/mipmap-mdpi/ic_launcher.png"
+    }
+]

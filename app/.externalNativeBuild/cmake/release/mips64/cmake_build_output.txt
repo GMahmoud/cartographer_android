@@ -1,0 +1,19 @@
+-- The C compiler identification is GNU 4.9.0
+-- The CXX compiler identification is GNU 4.9.0
+-- Check for working C compiler: /home/maghob/Android/Sdk/ndk-bundle/toolchains/mips64el-linux-android-4.9/prebuilt/linux-x86_64/bin/mips64el-linux-android-gcc
+-- Check for working C compiler: /home/maghob/Android/Sdk/ndk-bundle/toolchains/mips64el-linux-android-4.9/prebuilt/linux-x86_64/bin/mips64el-linux-android-gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /home/maghob/Android/Sdk/ndk-bundle/toolchains/mips64el-linux-android-4.9/prebuilt/linux-x86_64/bin/mips64el-linux-android-g++
+-- Check for working CXX compiler: /home/maghob/Android/Sdk/ndk-bundle/toolchains/mips64el-linux-android-4.9/prebuilt/linux-x86_64/bin/mips64el-linux-android-g++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Build type: Release
+Files /home/maghob/root/android_cartographer/app/.externalNativeBuild/cmake/release/mips64/AllFiles.cmake and - differ
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/maghob/root/android_cartographer/app/.externalNativeBuild/cmake/release/mips64

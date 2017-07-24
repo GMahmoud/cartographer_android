@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/color-v11/abc_background_cache_hint_selector_material_dark.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/color-v11/abc_background_cache_hint_selector_material_dark.xml"
+    },
+    {
+        "merged": "/home/maghob/root/android_cartographer/app/build/intermediates/res/merged/release/color-v11/abc_background_cache_hint_selector_material_light.xml",
+        "source": "/home/maghob/.android/build-cache/348d7adfe1b829a54038bd6491baa8a00105d7f3/output/res/color-v11/abc_background_cache_hint_selector_material_light.xml"
+    }
+]
