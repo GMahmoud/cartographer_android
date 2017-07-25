@@ -29,6 +29,8 @@
 
 #include "cartographer/common/lua_parameter_dictionary.h"
 
+#include "cartographer/to_string.h"
+
 #include <algorithm>
 #include <cmath>
 #include <functional>
@@ -318,7 +320,7 @@ string LuaParameterDictionary::DoToString(const string& indent) const {
         if (std::isinf(value)) {
           return value < 0 ? "-math.huge" : "math.huge";
         } else {
-          return std::to_string(value);
+          return to_string(value);
         }
       } break;
       case LUA_TTABLE: {

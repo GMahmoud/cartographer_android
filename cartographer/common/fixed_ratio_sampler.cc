@@ -16,6 +16,8 @@
 
 #include "cartographer/common/fixed_ratio_sampler.h"
 
+#include "cartographer/to_string.h"
+
 namespace cartographer {
 namespace common {
 
@@ -33,8 +35,8 @@ bool FixedRatioSampler::Pulse() {
 }
 
 string FixedRatioSampler::DebugString() {
-  return std::to_string(num_samples_) + " (" +
-         std::to_string(100. * num_samples_ / num_pulses_) + "%)";
+  return to_string(num_samples_) + " (" +
+         to_string(100. * num_samples_ / num_pulses_) + "%)";
 }
 
 }  // namespace common

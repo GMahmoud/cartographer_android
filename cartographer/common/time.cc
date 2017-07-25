@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "cartographer/to_string.h"
+
 namespace cartographer {
 namespace common {
 
@@ -36,7 +38,7 @@ Time FromUniversal(const int64 ticks) { return Time(Duration(ticks)); }
 int64 ToUniversal(const Time time) { return time.time_since_epoch().count(); }
 
 std::ostream& operator<<(std::ostream& os, const Time time) {
-  os << std::to_string(ToUniversal(time));
+  os << to_string(ToUniversal(time));
   return os;
 }
 

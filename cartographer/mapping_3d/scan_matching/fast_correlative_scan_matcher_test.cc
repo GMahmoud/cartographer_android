@@ -27,6 +27,8 @@
 #include "cartographer/transform/transform.h"
 #include "gtest/gtest.h"
 
+#include "cartographer/to_string.h"
+
 namespace cartographer {
 namespace mapping_3d {
 namespace scan_matching {
@@ -37,10 +39,10 @@ CreateFastCorrelativeScanMatcherTestOptions(const int branch_and_bound_depth) {
   auto parameter_dictionary = common::MakeDictionary(
       "return {"
       "branch_and_bound_depth = " +
-      std::to_string(branch_and_bound_depth) +
+      to_string(branch_and_bound_depth) +
       ", "
       "full_resolution_depth = " +
-      std::to_string(branch_and_bound_depth) +
+      to_string(branch_and_bound_depth) +
       ", "
       "rotational_histogram_size = 30, "
       "min_rotational_score = 0.1, "

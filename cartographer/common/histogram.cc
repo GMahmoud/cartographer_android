@@ -23,6 +23,8 @@
 #include "cartographer/common/port.h"
 #include "glog/logging.h"
 
+#include "cartographer/to_string.h"
+
 namespace cartographer {
 namespace common {
 
@@ -37,10 +39,10 @@ string Histogram::ToString(const int buckets) const {
   const float max = *std::max_element(values_.begin(), values_.end());
   const float mean =
       std::accumulate(values_.begin(), values_.end(), 0.f) / values_.size();
-  string result = "Count: " + std::to_string(values_.size()) +
-                  "  Min: " + std::to_string(min) +
-                  "  Max: " + std::to_string(max) +
-                  "  Mean: " + std::to_string(mean);
+  string result = "Count: " + to_string(values_.size()) +
+                  "  Min: " + to_string(min) +
+                  "  Max: " + to_string(max) +
+                  "  Mean: " + to_string(mean);
   if (min == max) {
     return result;
   }
@@ -60,8 +62,8 @@ string Histogram::ToString(const int buckets) const {
       }
     }
     total_count += count;
-    result += "\n[" + std::to_string(lower_bound) + ", " +
-              std::to_string(upper_bound) + ((i + 1 == buckets) ? "]" : ")");
+    result += "\n[" + to_string(lower_bound) + ", " +
+              to_string(upper_bound) + ((i + 1 == buckets) ? "]" : ")");
     constexpr int kMaxBarChars = 20;
     const int bar =
         (count * kMaxBarChars + values_.size() / 2) / values_.size();
@@ -69,10 +71,10 @@ string Histogram::ToString(const int buckets) const {
     for (int i = 0; i != kMaxBarChars; ++i) {
       result += (i < (kMaxBarChars - bar)) ? " " : "#";
     }
-    result += "\tCount: " + std::to_string(count) + " (" +
-              std::to_string(count * 1e2f / values_.size()) + "%)";
-    result += "\tTotal: " + std::to_string(total_count) + " (" +
-              std::to_string(total_count * 1e2f / values_.size()) + "%)";
+    result += "\tCount: " + to_string(count) + " (" +
+              to_string(count * 1e2f / values_.size()) + "%)";
+    result += "\tTotal: " + to_string(total_count) + " (" +
+              to_string(total_count * 1e2f / values_.size()) + "%)";
     lower_bound = upper_bound;
   }
   return result;

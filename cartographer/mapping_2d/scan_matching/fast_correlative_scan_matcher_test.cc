@@ -29,6 +29,8 @@
 #include "cartographer/transform/transform.h"
 #include "gtest/gtest.h"
 
+#include "cartographer/to_string.h"
+
 namespace cartographer {
 namespace mapping_2d {
 namespace scan_matching {
@@ -112,7 +114,7 @@ CreateFastCorrelativeScanMatcherTestOptions(const int branch_and_bound_depth) {
          linear_search_window = 3.,
          angular_search_window = 1.,
          branch_and_bound_depth = )text" +
-                             std::to_string(branch_and_bound_depth) + "}");
+                             to_string(branch_and_bound_depth) + "}");
   return CreateFastCorrelativeScanMatcherOptions(parameter_dictionary.get());
 }
 

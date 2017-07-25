@@ -28,6 +28,8 @@
 #include "cartographer/mapping_3d/hybrid_grid.h"
 #include "cartographer/transform/transform.h"
 
+#include "cartographer/to_string.h"
+
 namespace cartographer {
 namespace io {
 namespace {
@@ -218,7 +220,7 @@ PointsProcessor::FlushResult XRayPointsProcessor::Flush() {
     for (size_t i = 0; i < floors_.size(); ++i) {
       WriteVoxels(
           aggregations_[i],
-          file_writer_factory_(output_filename_ + std::to_string(i) + ".png")
+          file_writer_factory_(output_filename_ + to_string(i) + ".png")
               .get());
     }
   }

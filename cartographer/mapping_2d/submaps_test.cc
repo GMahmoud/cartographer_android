@@ -27,6 +27,8 @@
 #include "cartographer/transform/transform.h"
 #include "gmock/gmock.h"
 
+#include "cartographer/to_string.h"
+
 namespace cartographer {
 namespace mapping_2d {
 namespace {
@@ -37,7 +39,7 @@ TEST(SubmapsTest, TheRightNumberOfScansAreInserted) {
       "return {"
       "resolution = 0.05, "
       "num_range_data = " +
-      std::to_string(kNumRangeData) +
+      to_string(kNumRangeData) +
       ", "
       "range_data_inserter = {"
       "insert_free_space = true, "

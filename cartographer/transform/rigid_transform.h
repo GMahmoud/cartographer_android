@@ -26,6 +26,8 @@
 #include "cartographer/common/math.h"
 #include "cartographer/common/port.h"
 
+#include "cartographer/to_string.h"
+
 namespace cartographer {
 namespace transform {
 
@@ -81,11 +83,11 @@ class Rigid2 {
   string DebugString() const {
     string out;
     out.append("{ t: [");
-    out.append(std::to_string(translation().x()));
+    out.append(to_string(translation().x()));
     out.append(", ");
-    out.append(std::to_string(translation().y()));
+    out.append(to_string(translation().y()));
     out.append("], r: [");
-    out.append(std::to_string(rotation().angle()));
+    out.append(to_string(rotation().angle()));
     out.append("] }");
     return out;
   }
@@ -169,19 +171,19 @@ class Rigid3 {
   string DebugString() const {
     string out;
     out.append("{ t: [");
-    out.append(std::to_string(translation().x()));
+    out.append(to_string(translation().x()));
     out.append(", ");
-    out.append(std::to_string(translation().y()));
+    out.append(to_string(translation().y()));
     out.append(", ");
-    out.append(std::to_string(translation().z()));
+    out.append(to_string(translation().z()));
     out.append("], q: [");
-    out.append(std::to_string(rotation().w()));
+    out.append(to_string(rotation().w()));
     out.append(", ");
-    out.append(std::to_string(rotation().x()));
+    out.append(to_string(rotation().x()));
     out.append(", ");
-    out.append(std::to_string(rotation().y()));
+    out.append(to_string(rotation().y()));
     out.append(", ");
-    out.append(std::to_string(rotation().z()));
+    out.append(to_string(rotation().z()));
     out.append("] }");
     return out;
   }
