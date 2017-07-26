@@ -23,7 +23,7 @@
 #include "cartographer/common/lua_parameter_dictionary.h"
 #include "cartographer/common/make_unique.h"
 #include "cartographer/common/math.h"
-#include "cartographer/io/image.h"
+//#include "cartographer/io/image.h"
 #include "cartographer/mapping/detect_floors.h"
 #include "cartographer/mapping_3d/hybrid_grid.h"
 #include "cartographer/transform/transform.h"
@@ -49,48 +49,48 @@ double Mix(const double a, const double b, const double t) {
 }
 
 // Write 'mat' as a pleasing-to-look-at PNG into 'filename'
-Image IntoImage(const PixelDataMatrix& mat) {
-  Image image(mat.cols(), mat.rows());
-  float max = std::numeric_limits<float>::min();
-  for (int y = 0; y < mat.rows(); ++y) {
-    for (int x = 0; x < mat.cols(); ++x) {
-      const PixelData& cell = mat(y, x);
-      if (cell.num_occupied_cells_in_column == 0.) {
-        continue;
-      }
-      max = std::max<float>(max, std::log(cell.num_occupied_cells_in_column));
-    }
-  }
-
-  for (int y = 0; y < mat.rows(); ++y) {
-    for (int x = 0; x < mat.cols(); ++x) {
-      const PixelData& cell = mat(y, x);
-      if (cell.num_occupied_cells_in_column == 0.) {
-        image.SetPixel(x, y, {{255, 255, 255}});
-        continue;
-      }
-
-      // We use a logarithmic weighting for how saturated a pixel will be. The
-      // basic idea here was that walls (full height) are fully saturated, but
-      // details like chairs and tables are still well visible.
-      const float saturation =
-          std::log(cell.num_occupied_cells_in_column) / max;
-      double mean_r_in_column = (cell.mean_r / 255.);
-      double mean_g_in_column = (cell.mean_g / 255.);
-      double mean_b_in_column = (cell.mean_b / 255.);
-
-      double mix_r = Mix(1., mean_r_in_column, saturation);
-      double mix_g = Mix(1., mean_g_in_column, saturation);
-      double mix_b = Mix(1., mean_b_in_column, saturation);
-
-      const uint8_t r = common::RoundToInt(mix_r * 255.);
-      const uint8_t g = common::RoundToInt(mix_g * 255.);
-      const uint8_t b = common::RoundToInt(mix_b * 255.);
-      image.SetPixel(x, y, {{r, g, b}});
-    }
-  }
-  return image;
-}
+//Image IntoImage(const PixelDataMatrix& mat) {
+//  Image image(mat.cols(), mat.rows());
+//  float max = std::numeric_limits<float>::min();
+//  for (int y = 0; y < mat.rows(); ++y) {
+//    for (int x = 0; x < mat.cols(); ++x) {
+//      const PixelData& cell = mat(y, x);
+//      if (cell.num_occupied_cells_in_column == 0.) {
+//        continue;
+//      }
+//      max = std::max<float>(max, std::log(cell.num_occupied_cells_in_column));
+//    }
+//  }
+//
+//  for (int y = 0; y < mat.rows(); ++y) {
+//    for (int x = 0; x < mat.cols(); ++x) {
+//      const PixelData& cell = mat(y, x);
+//      if (cell.num_occupied_cells_in_column == 0.) {
+//        image.SetPixel(x, y, {{255, 255, 255}});
+//        continue;
+//      }
+//
+//      // We use a logarithmic weighting for how saturated a pixel will be. The
+//      // basic idea here was that walls (full height) are fully saturated, but
+//      // details like chairs and tables are still well visible.
+//      const float saturation =
+//          std::log(cell.num_occupied_cells_in_column) / max;
+//      double mean_r_in_column = (cell.mean_r / 255.);
+//      double mean_g_in_column = (cell.mean_g / 255.);
+//      double mean_b_in_column = (cell.mean_b / 255.);
+//
+//      double mix_r = Mix(1., mean_r_in_column, saturation);
+//      double mix_g = Mix(1., mean_g_in_column, saturation);
+//      double mix_b = Mix(1., mean_b_in_column, saturation);
+//
+//      const uint8_t r = common::RoundToInt(mix_r * 255.);
+//      const uint8_t g = common::RoundToInt(mix_g * 255.);
+//      const uint8_t b = common::RoundToInt(mix_b * 255.);
+//      image.SetPixel(x, y, {{r, g, b}});
+//    }
+//  }
+//  return image;
+//}
 
 bool ContainedIn(const common::Time& time,
                  const std::vector<mapping::Timespan>& timespans) {
@@ -168,11 +168,11 @@ void XRayPointsProcessor::WriteVoxels(const Aggregation& aggregation,
     pixel_data.mean_b = column_data.sum_b / column_data.count;
     ++pixel_data.num_occupied_cells_in_column;
   }
-  Image image = IntoImage(pixel_data_matrix);
+//  Image image = IntoImage(pixel_data_matrix);
 
   // TODO(hrapp): Draw trajectories here.
 
-  image.WritePng(file_writer);
+//  image.WritePng(file_writer);
   CHECK(file_writer->Close());
 }
 

@@ -4,7 +4,7 @@
 #include "cartographer/common/lua_parameter_dictionary.h"
 #include "cartographer/common/make_unique.h"
 #include "cartographer/common/math.h"
-#include "cartographer/io/image.h"
+//#include "cartographer/io/image.h"
 #include "cartographer/io/points_batch.h"
 
 namespace cartographer {
@@ -37,15 +37,15 @@ void WriteGrid(const mapping_2d::ProbabilityGrid& probability_grid,
   };
   int width = cell_limits.num_x_cells;
   int height = cell_limits.num_y_cells;
-  Image image(width, height);
+//  Image image(width, height);
   for (auto xy_index :
        cartographer::mapping_2d::XYIndexRangeIterator(cell_limits)) {
     auto index = xy_index + offset;
     uint8 value = compute_color_value(index);
     const Eigen::Array2i pixel = grid_index_to_pixel(xy_index);
-    image.SetPixel(pixel.x(), pixel.y(), {{value, value, value}});
+//    image.SetPixel(pixel.x(), pixel.y(), {{value, value, value}});
   }
-  image.WritePng(file_writer);
+//  image.WritePng(file_writer);
   CHECK(file_writer->Close());
 }
 
