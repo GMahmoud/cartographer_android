@@ -12,7 +12,6 @@ cd /path_to_your_ndk/build/tools
 
 Prepare libs
 ============
-
 -> Download another android ndk r9d : 
 https://github.com/android-ndk/ndk/wiki
 
@@ -44,5 +43,5 @@ git clone https://github.com/julienr/protobuf-android
 cd protobuf-android/example
 ./build.sh
 
-Copy libs
+#Copy libs
 
