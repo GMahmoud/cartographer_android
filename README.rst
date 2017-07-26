@@ -86,11 +86,11 @@ Build libprotobuf
 Copy libs
 ---------
 
-After cloning our rep |android_cartographer|
+After cloning our rep `android_cartographer`_
 
 .. code-block:: bash
    
-   $cd /path_to_android_cartographer/.. 
+   $ cd /path_to_android_cartographer/.. 
    $ mkdir libs 
    $ cd libs
    $ cp /path_to_Boost-for-Android/build/lib/libboost_iostreams-gcc-mt-1_53.a .
