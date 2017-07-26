@@ -16,15 +16,14 @@
 Cartographer_android
 ====================
 
-|build| |docs| |license|
-
 Create a toolchain 
 ===================
 You have to download a recent ndk -- r15b for example
 
 .. code-block:: bash
-$ cd /path_to_your_ndk/build/tools
-$./make_standalone_toolchain.py --arch arm --api 23 --install-dir /tmp/toolchain --stl gnustl --force
+
+   $ cd /path_to_your_ndk/build/tools
+   $./make_standalone_toolchain.py --arch arm --api 23 --install-dir /tmp/toolchain --stl gnustl --force
 
 
 Prepare libs
