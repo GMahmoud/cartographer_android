@@ -26,8 +26,8 @@ Download a recent ndk (r15b for example)
 
 .. code-block:: bash
 
-   cd /path_to_your_ndk/build/tools
-   ./make_standalone_toolchain.py --arch arm --api 23 --install-dir /tmp/toolchain --stl gnustl --force
+   $ cd /path_to_your_ndk/build/tools
+   $ ./make_standalone_toolchain.py --arch arm --api 23 --install-dir /tmp/toolchain --stl gnustl --force
 
 
 Prepare libraries
@@ -39,43 +39,63 @@ Download lua 5.2.4 : https://www.lua.org/ftp/lua-5.2.4.tar.gz
 
 .. code-block:: bash
 
-   tar -xzf lua-5.2.4.tar.gz
+   $ tar -xzf lua-5.2.4.tar.gz
 
 Build libboost 
 --------------
 
 .. code-block:: bash
 
-   git clone https://github.com/moritz-wundke/Boost-for-Android.git
-   export NDK= /path_to_r9d_ndk
-   ./build-android.sh $NDK
+   $ git clone https://github.com/moritz-wundke/Boost-for-Android.git
+   $ export NDK= /path_to_r9d_ndk
+   $ ./build-android.sh $NDK
 
 Build libceres
 --------------
 
 .. code-block:: bash
 
-   git clone https://github.com/ceres-solver/ceres-solver.git
-   cd ceres-solver/
-   /path_to_r9d_ndk/ndk-build
+   $ git clone https://github.com/ceres-solver/ceres-solver.git
+   $ cd ceres-solver/
+   $ /path_to_r9d_ndk/ndk-build
 
 Build liblua
 ------------
 
 .. code-block:: bash
 
-   git clone https://github.com/xxDroid/lua-android.git
-   cp -R /path_to_lua-android/jni  /path_to_lua-5.2.4
-   vim /path_to_lua-5.2.4/jni/lua.mk
+   $ git clone https://github.com/xxDroid/lua-android.git
+   $ cp -R /path_to_lua-android/jni  /path_to_lua-5.2.4
+   $ vim /path_to_lua-5.2.4/jni/lua.mk
 
 Then replace ``LIB_VERSION:=lua-5.2.2`` with ``LIB_VERSION:=lua-5.2.4``, ``LOCAL_LDLIBS += -llog`` with ``LOCAL_STATIC_LIBRARIES += -llog`` and	``include $(BUILD_SHARED_LIBRARY)`` with ``include $(BUILD_STATIC_LIBRARY)``.
 
-cd /path_to_lua-5.2.4 && /path_to_r9d_ndk/ndk-build
+.. code-block:: bash
 
--> Build libprotobuf
-git clone https://github.com/julienr/protobuf-android
-cd protobuf-android/example
-./build.sh
+   $ cd /path_to_lua-5.2.4 && /path_to_r9d_ndk/ndk-build
+
+Build libprotobuf
+-----------------
+
+.. code-block:: bash
+
+   $ git clone https://github.com/julienr/protobuf-android
+   $ cd protobuf-android/example
+   $ ./build.sh
 
 Copy libs
+---------
+
+After cloning our rep |android_cartographer|
+
+.. code-block:: bash
+   
+   $cd /path_to_android_cartographer/.. 
+   $ mkdir libs 
+   $ cd libs
+   $ cp /path_to_Boost-for-Android/build/lib/libboost_iostreams-gcc-mt-1_53.a .
+   $ cp /path_to_ceres-solver/obj/local/armeabi-v7a/libceres.a .
+   $ cp /path_to_lua-5.2.4/obj/local/armeabi-v7a/liblua.a .
+   $ cp /path_to_protobuf-android/example/obj/local/armeabi-v7a/libprotobuf.a .
+   
 
