@@ -1,6 +1,10 @@
-====================
-Cartographer_android
-====================
+<<<<<<< HEAD:README.md
+h.1 Cartographer_android
+
+=======
+
+h.1 Cartographer_android
+>>>>>>> 9f00310774d510df7c5eccebd1bf675cb63ba9dd:README.rst
 
 Create a toolchain 
 ===================
@@ -12,6 +16,7 @@ cd /path_to_your_ndk/build/tools
 
 Prepare libs
 ============
+
 -> Download another android ndk r9d : 
 https://github.com/android-ndk/ndk/wiki
 
@@ -43,5 +48,5 @@ git clone https://github.com/julienr/protobuf-android
 cd protobuf-android/example
 ./build.sh
 
-#Copy libs
+Copy libs
 
