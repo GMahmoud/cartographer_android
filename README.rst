@@ -1,7 +1,6 @@
 
 h.1 Cartographer_android
 
-
 Create a toolchain 
 ===================
 You have to download a recent ndk -- r15b for example
