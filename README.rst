@@ -83,8 +83,8 @@ Build libprotobuf
    $ cd protobuf-android/example
    $ ./build.sh
 
-Copy libs
----------
+Copy all libs
+-------------
 
 After cloning our rep `android_cartographer`_
 
