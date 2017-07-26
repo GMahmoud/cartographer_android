@@ -16,6 +16,10 @@
 Cartographer_android
 ====================
 
+.. contents::
+
+.. section-numbering::
+
 Create a toolchain 
 ===================
 Download a recent ndk -- r15b for example
@@ -23,7 +27,7 @@ Download a recent ndk -- r15b for example
 .. code-block:: bash
 
    $ cd /path_to_your_ndk/build/tools
-   $./make_standalone_toolchain.py --arch arm --api 23 --install-dir /tmp/toolchain --stl gnustl --force
+   $ ./make_standalone_toolchain.py --arch arm --api 23 --install-dir /tmp/toolchain --stl gnustl --force
 
 
 Prepare libs
@@ -33,9 +37,9 @@ Download another android ndk r9d : https://github.com/android-ndk/ndk/wiki
 Download lua 5.2.4 : https://www.lua.org/ftp/lua-5.2.4.tar.gz
 
 .. code-block:: bash
-   tar -xzf lua-5.2.4.tar.gz
+   $ tar -xzf lua-5.2.4.tar.gz
 
--> Build libboost 
+Build libboost 
 git clone https://github.com/moritz-wundke/Boost-for-Android.git
 export NDK= /path_to_r9d_ndk
 ./build-android.sh $NDK
