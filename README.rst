@@ -22,7 +22,7 @@ Cartographer_android
 
 Create a toolchain 
 ===================
-Download a recent ndk -- r15b for example
+Download a recent ndk (r15b for example)
 
 .. code-block:: bash
 
@@ -34,6 +34,7 @@ Prepare libraries
 =================
 
 Download another android ndk r9d : https://github.com/android-ndk/ndk/wiki
+
 Download lua 5.2.4 : https://www.lua.org/ftp/lua-5.2.4.tar.gz
 
 .. code-block:: bash
@@ -49,18 +50,26 @@ Build libboost
    export NDK= /path_to_r9d_ndk
    ./build-android.sh $NDK
 
--> Build libceres
-git clone https://github.com/ceres-solver/ceres-solver.git
-cd ceres-solver/
-/path_to_r9d_ndk/ndk-build
+Build libceres
+--------------
 
--> Build liblua
-git clone https://github.com/xxDroid/lua-android.git
-cp -R /path_to_lua-android/jni  /path_to_lua-5.2.4
-vim /path_to_lua-5.2.4/jni/lua.mk
-Replace LIB_VERSION:=lua-5.2.2 with LIB_VERSION:=lua-5.2.4
-	LOCAL_LDLIBS += -llog with LOCAL_STATIC_LIBRARIES += -llog
-	include $(BUILD_SHARED_LIBRARY) with include $(BUILD_STATIC_LIBRARY)
+.. code-block:: bash
+
+   git clone https://github.com/ceres-solver/ceres-solver.git
+   cd ceres-solver/
+   /path_to_r9d_ndk/ndk-build
+
+Build liblua
+------------
+
+.. code-block:: bash
+
+   git clone https://github.com/xxDroid/lua-android.git
+   cp -R /path_to_lua-android/jni  /path_to_lua-5.2.4
+   vim /path_to_lua-5.2.4/jni/lua.mk
+
+Then replace ``LIB_VERSION:=lua-5.2.2`` with ``LIB_VERSION:=lua-5.2.4``, ``LOCAL_LDLIBS += -llog`` with ``LOCAL_STATIC_LIBRARIES += -llog`` and	``include $(BUILD_SHARED_LIBRARY)`` with ``include $(BUILD_STATIC_LIBRARY)``.
+
 cd /path_to_lua-5.2.4 && /path_to_r9d_ndk/ndk-build
 
 -> Build libprotobuf
