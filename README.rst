@@ -18,7 +18,7 @@ Cartographer_android
 
 Create a toolchain 
 ===================
-You have to download a recent ndk -- r15b for example
+Download a recent ndk -- r15b for example
 
 .. code-block:: bash
 
@@ -29,12 +29,11 @@ You have to download a recent ndk -- r15b for example
 Prepare libs
 ============
 
--> Download another android ndk r9d : 
-https://github.com/android-ndk/ndk/wiki
+Download another android ndk r9d : https://github.com/android-ndk/ndk/wiki
+Download lua 5.2.4 : https://www.lua.org/ftp/lua-5.2.4.tar.gz
 
--> download lua 5.2.4 : 
-https://www.lua.org/ftp/lua-5.2.4.tar.gz
-tar -xzf lua-5.2.4.tar.gz
+.. code-block:: bash
+   tar -xzf lua-5.2.4.tar.gz
 
 -> Build libboost 
 git clone https://github.com/moritz-wundke/Boost-for-Android.git
