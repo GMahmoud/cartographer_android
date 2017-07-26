@@ -16,6 +16,8 @@
 Cartographer_android
 ====================
 
+|build| |docs| |license|
+
 Create a toolchain 
 ===================
 You have to download a recent ndk -- r15b for example
