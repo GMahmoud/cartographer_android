@@ -143,7 +143,7 @@ void RealTimeCorrelativeScanMatcher::ScoreCandidates(
     candidate.score /=
         static_cast<float>(discrete_scans[candidate.scan_index].size());
     candidate.score *=
-        std::exp(-common::Pow2(std::hypot(candidate.x, candidate.y) *
+        std::exp(-common::Pow2(hypot(candidate.x, candidate.y) *
                                    options_.translation_delta_cost_weight() +
                                std::abs(candidate.orientation) *
                                    options_.rotation_delta_cost_weight()));
