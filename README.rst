@@ -13,7 +13,7 @@
    limitations under the License.
 
 ====================
-Cartographer_android
+cartographer_android
 ====================
 
 .. contents::
@@ -86,7 +86,7 @@ Build libprotobuf
 Copy all libs
 -------------
 
-After cloning our rep `android_cartographer`_
+After cloning our rep `cartographer_android`_
 
 .. code-block:: bash
    
@@ -98,4 +98,4 @@ After cloning our rep `android_cartographer`_
    $ cp /path_to_lua-5.2.4/obj/local/armeabi-v7a/liblua.a .
    $ cp /path_to_protobuf-android/example/obj/local/armeabi-v7a/libprotobuf.a .
    
-.. _android_cartographer: https://bitbucket.org/G_Mahmoud/android_cartographer/src
+.. _cartographer_android: https://bitbucket.org/G_Mahmoud/android_cartographer/src
