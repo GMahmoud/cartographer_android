@@ -65,7 +65,7 @@ class SlidingWindowMaximum {
     return non_ascending_maxima_.front();
   }
 
-//  void CheckIsEmpty() const { CHECK_EQ(non_ascending_maxima_.size(), 0); }
+ void CheckIsEmpty() const { /*CHECK_EQ(non_ascending_maxima_.size(), 0);*/ }
 
  private:
   // Maximum of the current sliding window at the front. Then the maximum of the

@@ -393,14 +393,14 @@ void SparsePoseGraph::AddSubmapFromProto(const int trajectory_id,
   submap_data_.at(submap_id).submap = submap_ptr;
   // Immediately show the submap at the optimized pose.
 //  CHECK_GE(static_cast<size_t>(submap_data_.num_trajectories()),
-           optimized_submap_transforms_.size());
+//           optimized_submap_transforms_.size());
   optimized_submap_transforms_.resize(submap_data_.num_trajectories());
 //  CHECK_GE(static_cast<size_t>(submap_data_.num_trajectories()),
-           num_trimmed_submaps_at_last_optimization_.size());
+//          num_trimmed_submaps_at_last_optimization_.size());
   num_trimmed_submaps_at_last_optimization_.resize(
       submap_data_.num_trajectories());
 //  CHECK_EQ(optimized_submap_transforms_.at(trajectory_id).size(),
-           submap_id.submap_index);
+//           submap_id.submap_index);
   optimized_submap_transforms_.at(trajectory_id)
       .push_back(sparse_pose_graph::SubmapData{initial_pose_2d});
   AddWorkItem([this, submap_id, initial_pose_2d]() REQUIRES(mutex_) {

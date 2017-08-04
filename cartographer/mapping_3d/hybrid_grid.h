@@ -523,7 +523,7 @@ class HybridGrid : public HybridGridBase<uint16> {
 
   proto::HybridGrid ToProto() const {
 //    CHECK(update_indices_.empty()) << "Serializing a grid during an update is "
-                                      "not supported. Finish the update first.";
+//                                      "not supported. Finish the update first.";
     proto::HybridGrid result;
     result.set_resolution(resolution());
     for (const auto it : *this) {

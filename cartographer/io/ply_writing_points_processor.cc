@@ -64,7 +64,7 @@ void WriteBinaryPlyPointCoordinate(const Eigen::Vector3f& point,
 void WriteBinaryPlyPointColor(const Color& color,
                               FileWriter* const file_writer) {
 //  CHECK(file_writer->Write(reinterpret_cast<const char*>(color.data()),
-                           color.size()));
+//                           color.size()));
 }
 
 }  // namespace
@@ -112,9 +112,9 @@ void PlyWritingPointsProcessor::Process(std::unique_ptr<PointsBatch> batch) {
   }
   if (has_colors_) {
 //    CHECK_EQ(batch->points.size(), batch->colors.size())
-        << "First PointsBatch had colors, but encountered one without. "
-           "frame_id: "
-        << batch->frame_id;
+//        << "First PointsBatch had colors, but encountered one without. "
+//           "frame_id: "
+//        << batch->frame_id;
   }
 
   for (size_t i = 0; i < batch->points.size(); ++i) {

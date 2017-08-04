@@ -111,8 +111,8 @@ CompressedPointCloud::CompressedPointCloud(const PointCloud& point_cloud)
        ++point_index) {
     const Eigen::Vector3f& point = point_cloud[point_index];
 //    CHECK_LT(point.cwiseAbs().maxCoeff() / kPrecision,
-             1 << kMaxBitsPerDirection)
-        << "Point out of bounds: " << point;
+//             1 << kMaxBitsPerDirection)
+//        << "Point out of bounds: " << point;
     Eigen::Array3i raster_point;
     Eigen::Array3i block_coordinate;
     for (int i = 0; i < 3; ++i) {

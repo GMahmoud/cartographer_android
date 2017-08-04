@@ -49,7 +49,7 @@ proto::MapBuilderOptions CreateMapBuilderOptions(
   *options.mutable_sparse_pose_graph_options() = CreateSparsePoseGraphOptions(
       parameter_dictionary->GetDictionary("sparse_pose_graph").get());
 //  CHECK_NE(options.use_trajectory_builder_2d(),
-           options.use_trajectory_builder_3d());
+//           options.use_trajectory_builder_3d());
   return options;
 }
 

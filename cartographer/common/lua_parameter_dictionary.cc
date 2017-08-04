@@ -398,7 +398,7 @@ std::vector<string> LuaParameterDictionary::GetArrayValuesAsStrings() {
 
 void LuaParameterDictionary::CheckHasKey(const string& key) const {
 //  CHECK(HasKey(key)) << "Key '" << key << "' not in dictionary:\n"
-                     << ToString();
+//                     << ToString();
 }
 
 void LuaParameterDictionary::CheckHasKeyAndReference(const string& key) {
@@ -409,9 +409,9 @@ void LuaParameterDictionary::CheckHasKeyAndReference(const string& key) {
 void LuaParameterDictionary::CheckAllKeysWereUsedExactlyOnceAndReset() {
   for (const auto& key : GetKeys()) {
 //    CHECK_EQ(1, reference_counts_.count(key))
-        << "Key '" << key << "' was used the wrong number of times.";
+//        << "Key '" << key << "' was used the wrong number of times.";
 //    CHECK_EQ(1, reference_counts_.at(key))
-        << "Key '" << key << "' was used the wrong number of times.";
+//       << "Key '" << key << "' was used the wrong number of times.";
   }
   reference_counts_.clear();
 }

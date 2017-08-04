@@ -96,7 +96,7 @@ void RegisterBuiltInPointsProcessors(
 void PointsProcessorPipelineBuilder::Register(const std::string& name,
                                               FactoryFunction factory) {
 //  CHECK(factories_.count(name) == 0) << "A points processor named '" << name
-                                     << "' has already been registered.";
+//                                     << "' has already been registered.";
   factories_[name] = factory;
 }
 
@@ -119,8 +119,8 @@ PointsProcessorPipelineBuilder::CreatePipeline(
     const string action = (*it)->GetString("action");
     auto factory_it = factories_.find(action);
 //    CHECK(factory_it != factories_.end())
-        << "Unknown action '" << action
-        << "'. Did you register the correspoinding PointsProcessor?";
+//        << "Unknown action '" << action
+//        << "'. Did you register the correspoinding PointsProcessor?";
     pipeline.push_back(factory_it->second(it->get(), pipeline.back().get()));
   }
   return pipeline;
