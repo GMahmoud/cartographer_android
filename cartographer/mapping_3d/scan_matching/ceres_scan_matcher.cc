@@ -102,10 +102,10 @@ void CeresScanMatcher::Match(const transform::Rigid3d& previous_pose,
                 common::make_unique<ceres::QuaternionParameterization>()),
       &problem);
 
-  CHECK_EQ(options_.occupied_space_weight_size(),
+//  CHECK_EQ(options_.occupied_space_weight_size(),
            point_clouds_and_hybrid_grids.size());
   for (size_t i = 0; i != point_clouds_and_hybrid_grids.size(); ++i) {
-    CHECK_GT(options_.occupied_space_weight(i), 0.);
+//    CHECK_GT(options_.occupied_space_weight(i), 0.);
     const sensor::PointCloud& point_cloud =
         *point_clouds_and_hybrid_grids[i].first;
     const HybridGrid& hybrid_grid = *point_clouds_and_hybrid_grids[i].second;
@@ -119,13 +119,13 @@ void CeresScanMatcher::Match(const transform::Rigid3d& previous_pose,
             point_cloud.size()),
         nullptr, ceres_pose.translation(), ceres_pose.rotation());
   }
-  CHECK_GT(options_.translation_weight(), 0.);
+//  CHECK_GT(options_.translation_weight(), 0.);
   problem.AddResidualBlock(
       new ceres::AutoDiffCostFunction<TranslationDeltaCostFunctor, 3, 3>(
           new TranslationDeltaCostFunctor(options_.translation_weight(),
                                           previous_pose)),
       nullptr, ceres_pose.translation());
-  CHECK_GT(options_.rotation_weight(), 0.);
+//  CHECK_GT(options_.rotation_weight(), 0.);
   problem.AddResidualBlock(
       new ceres::AutoDiffCostFunction<RotationDeltaCostFunctor, 3, 4>(
           new RotationDeltaCostFunctor(options_.rotation_weight(),

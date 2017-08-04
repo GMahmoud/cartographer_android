@@ -31,7 +31,7 @@ namespace {
 Eigen::Vector3d TranslationFromDictionary(
     common::LuaParameterDictionary* dictionary) {
   const std::vector<double> translation = dictionary->GetArrayValuesAsDoubles();
-  CHECK_EQ(3, translation.size()) << "Need (x, y, z) for translation.";
+//  CHECK_EQ(3, translation.size()) << "Need (x, y, z) for translation.";
   return Eigen::Vector3d(translation[0], translation[1], translation[2]);
 }
 
@@ -55,12 +55,12 @@ transform::Rigid3d FromDictionary(common::LuaParameterDictionary* dictionary) {
                                       rotation_dictionary->GetDouble("x"),
                                       rotation_dictionary->GetDouble("y"),
                                       rotation_dictionary->GetDouble("z"));
-    CHECK_NEAR(rotation.norm(), 1., 1e-9);
+//    CHECK_NEAR(rotation.norm(), 1., 1e-9);
     return transform::Rigid3d(translation, rotation);
   } else {
     const std::vector<double> rotation =
         rotation_dictionary->GetArrayValuesAsDoubles();
-    CHECK_EQ(3, rotation.size()) << "Need (roll, pitch, yaw) for rotation.";
+//    CHECK_EQ(3, rotation.size()) << "Need (roll, pitch, yaw) for rotation.";
     return transform::Rigid3d(
         translation, RollPitchYaw(rotation[0], rotation[1], rotation[2]));
   }

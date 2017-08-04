@@ -28,8 +28,8 @@ FixedRatioSamplingPointsProcessor::FromDictionary(
     common::LuaParameterDictionary* const dictionary,
     PointsProcessor* const next) {
   const double sampling_ratio(dictionary->GetDouble("sampling_ratio"));
-  CHECK_LT(0., sampling_ratio) << "Sampling ratio <= 0 makes no sense.";
-  CHECK_LT(sampling_ratio, 1.) << "Sampling ratio >= 1 makes no sense.";
+//  CHECK_LT(0., sampling_ratio) << "Sampling ratio <= 0 makes no sense.";
+//  CHECK_LT(sampling_ratio, 1.) << "Sampling ratio >= 1 makes no sense.";
   return common::make_unique<FixedRatioSamplingPointsProcessor>(sampling_ratio,
                                                                 next);
 }

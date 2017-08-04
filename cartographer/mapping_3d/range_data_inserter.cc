@@ -36,7 +36,7 @@ void InsertMissesIntoGrid(const std::vector<uint16>& miss_table,
 
     const Eigen::Array3i delta = hit_cell - origin_cell;
     const int num_samples = delta.cwiseAbs().maxCoeff();
-    CHECK_LT(num_samples, 1 << 15);
+//    CHECK_LT(num_samples, 1 << 15);
     // 'num_samples' is the number of samples we equi-distantly place on the
     // line between 'origin' and 'hit'. (including a fractional part for sub-
     // voxels) It is chosen so that between two samples we change from one voxel
@@ -63,8 +63,8 @@ proto::RangeDataInserterOptions CreateRangeDataInserterOptions(
       parameter_dictionary->GetDouble("miss_probability"));
   options.set_num_free_space_voxels(
       parameter_dictionary->GetInt("num_free_space_voxels"));
-  CHECK_GT(options.hit_probability(), 0.5);
-  CHECK_LT(options.miss_probability(), 0.5);
+//  CHECK_GT(options.hit_probability(), 0.5);
+//  CHECK_LT(options.miss_probability(), 0.5);
   return options;
 }
 
@@ -78,7 +78,7 @@ RangeDataInserter::RangeDataInserter(
 
 void RangeDataInserter::Insert(const sensor::RangeData& range_data,
                                HybridGrid* hybrid_grid) const {
-  CHECK_NOTNULL(hybrid_grid);
+//  CHECK_NOTNULL(hybrid_grid);
 
   for (const Eigen::Vector3f& hit : range_data.returns) {
     const Eigen::Array3i hit_cell = hybrid_grid->GetCellIndex(hit);

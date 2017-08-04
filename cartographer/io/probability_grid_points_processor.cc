@@ -46,7 +46,7 @@ void WriteGrid(const mapping_2d::ProbabilityGrid& probability_grid,
 //    image.SetPixel(pixel.x(), pixel.y(), {{value, value, value}});
   }
 //  image.WritePng(file_writer);
-  CHECK(file_writer->Close());
+//  CHECK(file_writer->Close());
 }
 
 mapping_2d::ProbabilityGrid CreateProbabilityGrid(const double resolution) {

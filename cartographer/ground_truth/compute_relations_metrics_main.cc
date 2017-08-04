@@ -68,7 +68,7 @@ Error ComputeError(const transform::Rigid3d& pose1,
 }
 
 string MeanAndStdDevString(const std::vector<double>& values) {
-  CHECK_GE(values.size(), 2);
+//  CHECK_GE(values.size(), 2);
   const double mean =
       std::accumulate(values.begin(), values.end(), 0.) / values.size();
   double sum_of_squared_differences = 0.;
@@ -115,8 +115,8 @@ void Run(const string& pose_graph_filename, const string& relations_filename,
   mapping::proto::SparsePoseGraph pose_graph;
   {
     io::ProtoStreamReader reader(pose_graph_filename);
-    CHECK(reader.ReadProto(&pose_graph));
-    CHECK_EQ(pose_graph.trajectory_size(), 1)
+//    CHECK(reader.ReadProto(&pose_graph));
+//    CHECK_EQ(pose_graph.trajectory_size(), 1)
         << "Only pose graphs containing a single trajectory are supported.";
   }
   const auto transform_interpolation_buffer =
@@ -131,7 +131,7 @@ void Run(const string& pose_graph_filename, const string& relations_filename,
     LOG(INFO) << "Reading ground truth from '" << relations_filename << "'...";
     std::ifstream ground_truth_stream(relations_filename.c_str(),
                                       std::ios::binary);
-    CHECK(ground_truth.ParseFromIstream(&ground_truth_stream));
+//    CHECK(ground_truth.ParseFromIstream(&ground_truth_stream));
   }
 
   std::vector<Error> errors;

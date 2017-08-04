@@ -62,7 +62,7 @@ void WriteBinaryPcdPointCoordinate(const Eigen::Vector3f& point,
   memcpy(buffer, &point[0], sizeof(float));
   memcpy(buffer + 4, &point[1], sizeof(float));
   memcpy(buffer + 8, &point[2], sizeof(float));
-  CHECK(file_writer->Write(buffer, 12));
+//  CHECK(file_writer->Write(buffer, 12));
 }
 
 void WriteBinaryPcdPointColor(const Color& color,
@@ -72,7 +72,7 @@ void WriteBinaryPcdPointColor(const Color& color,
   buffer[1] = color[1];
   buffer[2] = color[0];
   buffer[3] = 0;
-  CHECK(file_writer->Write(buffer, 4));
+//  CHECK(file_writer->Write(buffer, 4));
 }
 
 }  // namespace
@@ -95,7 +95,7 @@ PcdWritingPointsProcessor::PcdWritingPointsProcessor(
 
 PointsProcessor::FlushResult PcdWritingPointsProcessor::Flush() {
   WriteBinaryPcdHeader(has_colors_, num_points_, file_writer_.get());
-  CHECK(file_writer_->Close());
+//  CHECK(file_writer_->Close());
 
   switch (next_->Flush()) {
     case FlushResult::kFinished:

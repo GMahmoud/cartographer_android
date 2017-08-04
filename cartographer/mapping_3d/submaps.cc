@@ -161,7 +161,7 @@ proto::SubmapsOptions CreateSubmapsOptions(
   *options.mutable_range_data_inserter_options() =
       CreateRangeDataInserterOptions(
           parameter_dictionary->GetDictionary("range_data_inserter").get());
-  CHECK_GT(options.num_range_data(), 0);
+//  CHECK_GT(options.num_range_data(), 0);
   return options;
 }
 
@@ -227,7 +227,7 @@ void Submap::ToResponseProto(
 void Submap::InsertRangeData(const sensor::RangeData& range_data,
                              const RangeDataInserter& range_data_inserter,
                              const int high_resolution_max_range) {
-  CHECK(!finished_);
+//  CHECK(!finished_);
   const sensor::RangeData transformed_range_data = sensor::TransformRangeData(
       range_data, local_pose().inverse().cast<float>());
   range_data_inserter.Insert(
@@ -240,7 +240,7 @@ void Submap::InsertRangeData(const sensor::RangeData& range_data,
 }
 
 void Submap::Finish() {
-  CHECK(!finished_);
+//  CHECK(!finished_);
   finished_ = true;
 }
 

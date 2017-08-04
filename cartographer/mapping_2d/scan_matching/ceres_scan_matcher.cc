@@ -69,7 +69,7 @@ void CeresScanMatcher::Match(const transform::Rigid2d& previous_pose,
                                    initial_pose_estimate.translation().y(),
                                    initial_pose_estimate.rotation().angle()};
   ceres::Problem problem;
-  CHECK_GT(options_.occupied_space_weight(), 0.);
+//  CHECK_GT(options_.occupied_space_weight(), 0.);
   problem.AddResidualBlock(
       new ceres::AutoDiffCostFunction<OccupiedSpaceCostFunctor, ceres::DYNAMIC,
                                       3>(
@@ -79,13 +79,13 @@ void CeresScanMatcher::Match(const transform::Rigid2d& previous_pose,
               point_cloud, probability_grid),
           point_cloud.size()),
       nullptr, ceres_pose_estimate);
-  CHECK_GT(options_.translation_weight(), 0.);
+//  CHECK_GT(options_.translation_weight(), 0.);
   problem.AddResidualBlock(
       new ceres::AutoDiffCostFunction<TranslationDeltaCostFunctor, 2, 3>(
           new TranslationDeltaCostFunctor(options_.translation_weight(),
                                           previous_pose)),
       nullptr, ceres_pose_estimate);
-  CHECK_GT(options_.rotation_weight(), 0.);
+//  CHECK_GT(options_.rotation_weight(), 0.);
   problem.AddResidualBlock(
       new ceres::AutoDiffCostFunction<RotationDeltaCostFunctor, 1, 3>(
           new RotationDeltaCostFunctor(options_.rotation_weight(),

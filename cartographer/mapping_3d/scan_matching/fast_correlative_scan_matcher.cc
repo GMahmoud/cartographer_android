@@ -59,8 +59,8 @@ class PrecomputationGridStack {
   PrecomputationGridStack(
       const HybridGrid& hybrid_grid,
       const proto::FastCorrelativeScanMatcherOptions& options) {
-    CHECK_GE(options.branch_and_bound_depth(), 1);
-    CHECK_GE(options.full_resolution_depth(), 1);
+//    CHECK_GE(options.branch_and_bound_depth(), 1);
+//    CHECK_GE(options.full_resolution_depth(), 1);
     precomputation_grids_.reserve(options.branch_and_bound_depth());
     precomputation_grids_.push_back(ConvertToPrecomputationGrid(hybrid_grid));
     Eigen::Array3i last_width = Eigen::Array3i::Ones();
@@ -146,8 +146,8 @@ bool FastCorrelativeScanMatcher::MatchWithSearchParameters(
     const sensor::PointCloud& fine_point_cloud, const float min_score,
     float* const score, transform::Rigid3d* const pose_estimate,
     float* const rotational_score) const {
-  CHECK_NOTNULL(score);
-  CHECK_NOTNULL(pose_estimate);
+//  CHECK_NOTNULL(score);
+//  CHECK_NOTNULL(pose_estimate);
 
   const std::vector<DiscreteScan> discrete_scans = GenerateDiscreteScans(
       search_parameters, coarse_point_cloud, fine_point_cloud,
@@ -187,13 +187,13 @@ DiscreteScan FastCorrelativeScanMatcher::DiscretizeScan(
   }
   const int full_resolution_depth = std::min(options_.full_resolution_depth(),
                                              options_.branch_and_bound_depth());
-  CHECK_GE(full_resolution_depth, 1);
+//  CHECK_GE(full_resolution_depth, 1);
   for (int i = 0; i != full_resolution_depth; ++i) {
     cell_indices_per_depth.push_back(full_resolution_cell_indices);
   }
   const int low_resolution_depth =
       options_.branch_and_bound_depth() - full_resolution_depth;
-  CHECK_GE(low_resolution_depth, 0);
+//  CHECK_GE(low_resolution_depth, 0);
   const Eigen::Array3i search_window_start(
       -search_parameters.linear_xy_window_size,
       -search_parameters.linear_xy_window_size,
@@ -294,7 +294,7 @@ FastCorrelativeScanMatcher::GenerateLowestResolutionCandidates(
       }
     }
   }
-  CHECK_EQ(candidates.size(), num_candidates);
+//  CHECK_EQ(candidates.size(), num_candidates);
   return candidates;
 }
 
@@ -309,7 +309,7 @@ void FastCorrelativeScanMatcher::ScoreCandidates(
     const Eigen::Array3i offset(candidate.offset[0] >> reduction_exponent,
                                 candidate.offset[1] >> reduction_exponent,
                                 candidate.offset[2] >> reduction_exponent);
-    CHECK_LT(depth, discrete_scan.cell_indices_per_depth.size());
+//    CHECK_LT(depth, discrete_scan.cell_indices_per_depth.size());
     for (const Eigen::Array3i& cell_index :
          discrete_scan.cell_indices_per_depth[depth]) {
       const Eigen::Array3i proposed_cell_index = cell_index + offset;

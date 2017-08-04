@@ -54,7 +54,7 @@ class ProbabilityGrid {
     }
     cells_.reserve(proto.cells_size());
     for (const auto cell : proto.cells()) {
-      CHECK_LE(cell, std::numeric_limits<uint16>::max());
+//      CHECK_LE(cell, std::numeric_limits<uint16>::max());
       cells_.push_back(cell);
     }
   }
@@ -65,7 +65,7 @@ class ProbabilityGrid {
   // Finishes the update sequence.
   void FinishUpdate() {
     while (!update_indices_.empty()) {
-      DCHECK_GE(cells_[update_indices_.back()], mapping::kUpdateMarker);
+//      DCHECK_GE(cells_[update_indices_.back()], mapping::kUpdateMarker);
       cells_[update_indices_.back()] -= mapping::kUpdateMarker;
       update_indices_.pop_back();
     }
@@ -76,7 +76,7 @@ class ProbabilityGrid {
   void SetProbability(const Eigen::Array2i& cell_index,
                       const float probability) {
     uint16& cell = cells_[ToFlatIndex(cell_index)];
-    CHECK_EQ(cell, mapping::kUnknownProbabilityValue);
+//    CHECK_EQ(cell, mapping::kUnknownProbabilityValue);
     cell = mapping::ProbabilityToValue(probability);
     known_cells_box_.extend(cell_index.matrix());
   }
@@ -90,7 +90,7 @@ class ProbabilityGrid {
   // will be set to probability corresponding to 'odds'.
   bool ApplyLookupTable(const Eigen::Array2i& cell_index,
                         const std::vector<uint16>& table) {
-    DCHECK_EQ(table.size(), mapping::kUpdateMarker);
+//    DCHECK_EQ(table.size(), mapping::kUpdateMarker);
     const int flat_index = ToFlatIndex(cell_index);
     uint16& cell = cells_[flat_index];
     if (cell >= mapping::kUpdateMarker) {
@@ -98,7 +98,7 @@ class ProbabilityGrid {
     }
     update_indices_.push_back(flat_index);
     cell = table[cell];
-    DCHECK_GE(cell, mapping::kUpdateMarker);
+//    DCHECK_GE(cell, mapping::kUpdateMarker);
     known_cells_box_.extend(cell_index.matrix());
     return true;
   }
@@ -135,7 +135,7 @@ class ProbabilityGrid {
   // these coordinates going forward. This method must be called immediately
   // after 'FinishUpdate', before any calls to 'ApplyLookupTable'.
   void GrowLimits(const Eigen::Vector2f& point) {
-    CHECK(update_indices_.empty());
+//    CHECK(update_indices_.empty());
     while (!limits_.Contains(limits_.GetCellIndex(point))) {
       const int x_offset = limits_.cell_limits().num_x_cells / 2;
       const int y_offset = limits_.cell_limits().num_y_cells / 2;
@@ -172,7 +172,7 @@ class ProbabilityGrid {
     for (const auto cell : cells_) {
       result.mutable_cells()->Add(cell);
     }
-    CHECK(update_indices_.empty()) << "Serializing a grid during an update is "
+//    CHECK(update_indices_.empty()) << "Serializing a grid during an update is "
                                       "not supported. Finish the update first.";
     if (!known_cells_box_.isEmpty()) {
       result.set_max_x(known_cells_box_.max().x());
@@ -186,7 +186,7 @@ class ProbabilityGrid {
  private:
   // Converts a 'cell_index' into an index into 'cells_'.
   int ToFlatIndex(const Eigen::Array2i& cell_index) const {
-    CHECK(limits_.Contains(cell_index)) << cell_index;
+//    CHECK(limits_.Contains(cell_index)) << cell_index;
     return limits_.cell_limits().num_x_cells * cell_index.y() + cell_index.x();
   }
 

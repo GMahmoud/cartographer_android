@@ -53,7 +53,7 @@ proto::GroundTruth ReadRelationsTextFile(const string& relations_filename) {
     new_relation->set_timestamp2(common::ToUniversal(common_time_2));
     *new_relation->mutable_expected() = transform::ToProto(expected);
   }
-  CHECK(relations_stream.eof());
+//  CHECK(relations_stream.eof());
   return ground_truth;
 }
 

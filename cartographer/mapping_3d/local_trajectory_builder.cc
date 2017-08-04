@@ -109,8 +109,8 @@ LocalTrajectoryBuilder::AddRangefinderData(const common::Time time,
 }
 
 void LocalTrajectoryBuilder::Predict(const common::Time time) {
-  CHECK(imu_tracker_ != nullptr);
-  CHECK_LE(time_, time);
+//  CHECK(imu_tracker_ != nullptr);
+//  CHECK_LE(time_, time);
   const Eigen::Quaterniond last_orientation = imu_tracker_->orientation();
   imu_tracker_->Advance(time);
   if (time_ > common::Time::min()) {

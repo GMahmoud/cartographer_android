@@ -52,9 +52,9 @@ inline uint16 ProbabilityToValue(const float probability) {
       common::RoundToInt((ClampProbability(probability) - kMinProbability) *
                          (32766.f / (kMaxProbability - kMinProbability))) +
       1;
-  // DCHECK for performance.
-  DCHECK_GE(value, 1);
-  DCHECK_LE(value, 32767);
+//  // DCHECK for performance.
+//  DCHECK_GE(value, 1);
+//  DCHECK_LE(value, 32767);
   return value;
 }
 

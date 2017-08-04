@@ -50,7 +50,7 @@ PointsProcessor::FlushResult HybridGridPointsProcessor::Flush() {
   string serialized;
   hybrid_grid_proto.SerializeToString(&serialized);
   file_writer_->Write(serialized.data(), serialized.size());
-  CHECK(file_writer_->Close());
+//  CHECK(file_writer_->Close());
 
   switch (next_->Flush()) {
     case FlushResult::kRestartStream:

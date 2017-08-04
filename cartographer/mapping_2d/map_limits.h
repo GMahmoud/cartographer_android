@@ -42,9 +42,9 @@ class MapLimits {
   MapLimits(const double resolution, const Eigen::Vector2d& max,
             const CellLimits& cell_limits)
       : resolution_(resolution), max_(max), cell_limits_(cell_limits) {
-    CHECK_GT(resolution_, 0.);
-    CHECK_GT(cell_limits.num_x_cells, 0.);
-    CHECK_GT(cell_limits.num_y_cells, 0.);
+//    CHECK_GT(resolution_, 0.);
+//    CHECK_GT(cell_limits.num_x_cells, 0.);
+//    CHECK_GT(cell_limits.num_y_cells, 0.);
   }
 
   explicit MapLimits(const proto::MapLimits& map_limits)

@@ -23,8 +23,8 @@ namespace {
 
 // 0 is unknown, [1, 32767] maps to [kMinProbability, kMaxProbability].
 float SlowValueToProbability(const uint16 value) {
-  CHECK_GE(value, 0);
-  CHECK_LE(value, 32767);
+//  CHECK_GE(value, 0);
+//  CHECK_LE(value, 32767);
   if (value == kUnknownProbabilityValue) {
     // Unknown cells have kMinProbability.
     return kMinProbability;

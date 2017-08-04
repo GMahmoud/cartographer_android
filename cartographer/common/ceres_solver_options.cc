@@ -27,8 +27,8 @@ proto::CeresSolverOptions CreateCeresSolverOptionsProto(
   proto.set_max_num_iterations(
       parameter_dictionary->GetNonNegativeInt("max_num_iterations"));
   proto.set_num_threads(parameter_dictionary->GetNonNegativeInt("num_threads"));
-  CHECK_GT(proto.max_num_iterations(), 0);
-  CHECK_GT(proto.num_threads(), 0);
+//  CHECK_GT(proto.max_num_iterations(), 0);
+//  CHECK_GT(proto.num_threads(), 0);
   return proto;
 }
 

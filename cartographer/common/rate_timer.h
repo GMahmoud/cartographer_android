@@ -97,7 +97,7 @@ class RateTimer {
 
   // Computes all differences in seconds between consecutive pulses.
   std::vector<double> ComputeDeltasInSeconds() const {
-    CHECK_GT(events_.size(), 1);
+//    CHECK_GT(events_.size(), 1);
     const size_t count = events_.size() - 1;
     std::vector<double> result;
     result.reserve(count);

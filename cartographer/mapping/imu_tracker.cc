@@ -36,7 +36,7 @@ ImuTracker::ImuTracker(const double imu_gravity_time_constant,
       imu_angular_velocity_(Eigen::Vector3d::Zero()) {}
 
 void ImuTracker::Advance(const common::Time time) {
-  CHECK_LE(time_, time);
+//  CHECK_LE(time_, time);
   const double delta_t = common::ToSeconds(time - time_);
   const Eigen::Quaterniond rotation =
       transform::AngleAxisVectorToRotationQuaternion(
@@ -63,8 +63,8 @@ void ImuTracker::AddImuLinearAccelerationObservation(
   const Eigen::Quaterniond rotation = Eigen::Quaterniond::FromTwoVectors(
       gravity_vector_, orientation_.inverse() * Eigen::Vector3d::UnitZ());
   orientation_ = (orientation_ * rotation).normalized();
-  CHECK_GT((orientation_ * gravity_vector_).z(), 0.);
-  CHECK_GT((orientation_ * gravity_vector_).normalized().z(), 0.99);
+//  CHECK_GT((orientation_ * gravity_vector_).z(), 0.);
+//  CHECK_GT((orientation_ * gravity_vector_).normalized().z(), 0.99);
 }
 
 void ImuTracker::AddImuAngularVelocityObservation(

@@ -30,9 +30,9 @@ bool PerformGlobalLocalization(
         matchers,
     const cartographer::sensor::PointCloud& point_cloud,
     transform::Rigid2d* const best_pose_estimate, float* const best_score) {
-  CHECK(best_pose_estimate != nullptr)
+//  CHECK(best_pose_estimate != nullptr)
       << "Need a non-null output_pose_estimate!";
-  CHECK(best_score != nullptr) << "Need a non-null best_score!";
+//  CHECK(best_score != nullptr) << "Need a non-null best_score!";
   *best_score = cutoff;
   transform::Rigid2d pose_estimate;
   const sensor::PointCloud filtered_point_cloud =
@@ -47,7 +47,7 @@ bool PerformGlobalLocalization(
     transform::Rigid2d pose_estimate;
     if (matcher->MatchFullSubmap(filtered_point_cloud, *best_score, &score,
                                  &pose_estimate)) {
-      CHECK_GT(score, *best_score) << "MatchFullSubmap lied!";
+//      CHECK_GT(score, *best_score) << "MatchFullSubmap lied!";
       *best_score = score;
       *best_pose_estimate = pose_estimate;
       success = true;

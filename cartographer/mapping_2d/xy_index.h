@@ -72,7 +72,7 @@ class XYIndexRangeIterator
     // This is a necessary evil. Bounds checking is very expensive and needs to
     // be avoided in production. We have unit tests that exercise this check
     // in debug mode.
-    DCHECK(*this != end());
+//    DCHECK(*this != end());
     if (xy_index_.x() < max_xy_index_.x()) {
       ++xy_index_.x();
     } else {

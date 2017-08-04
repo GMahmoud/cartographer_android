@@ -52,7 +52,7 @@ void TrajectoryConnectivity::Union(const int trajectory_id_a,
 
 int TrajectoryConnectivity::FindSet(const int trajectory_id) {
   auto it = forest_.find(trajectory_id);
-  CHECK(it != forest_.end());
+//  CHECK(it != forest_.end());
   if (it->first != it->second) {
     it->second = FindSet(it->second);
   }

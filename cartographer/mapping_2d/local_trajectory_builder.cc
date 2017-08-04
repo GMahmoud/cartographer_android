@@ -224,7 +224,7 @@ LocalTrajectoryBuilder::pose_estimate() const {
 void LocalTrajectoryBuilder::AddImuData(
     const common::Time time, const Eigen::Vector3d& linear_acceleration,
     const Eigen::Vector3d& angular_velocity) {
-  CHECK(options_.use_imu_data()) << "An unexpected IMU packet was added.";
+//  CHECK(options_.use_imu_data()) << "An unexpected IMU packet was added.";
 
   InitializeImuTracker(time);
   Predict(time);
@@ -261,8 +261,8 @@ void LocalTrajectoryBuilder::InitializeImuTracker(const common::Time time) {
 }
 
 void LocalTrajectoryBuilder::Predict(const common::Time time) {
-  CHECK(imu_tracker_ != nullptr);
-  CHECK_LE(time_, time);
+//  CHECK(imu_tracker_ != nullptr);
+//  CHECK_LE(time_, time);
   const double last_yaw = transform::GetYaw(imu_tracker_->orientation());
   imu_tracker_->Advance(time);
   if (time_ > common::Time::min()) {

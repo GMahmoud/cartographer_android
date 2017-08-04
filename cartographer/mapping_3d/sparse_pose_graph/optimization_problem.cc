@@ -83,7 +83,7 @@ void OptimizationProblem::AddImuData(const int trajectory_id,
                                      const common::Time time,
                                      const Eigen::Vector3d& linear_acceleration,
                                      const Eigen::Vector3d& angular_velocity) {
-  CHECK_GE(trajectory_id, 0);
+//  CHECK_GE(trajectory_id, 0);
   imu_data_.resize(
       std::max(imu_data_.size(), static_cast<size_t>(trajectory_id) + 1));
   imu_data_[trajectory_id].push_back(
@@ -93,7 +93,7 @@ void OptimizationProblem::AddImuData(const int trajectory_id,
 void OptimizationProblem::AddTrajectoryNode(
     const int trajectory_id, const common::Time time,
     const transform::Rigid3d& point_cloud_pose) {
-  CHECK_GE(trajectory_id, 0);
+//  CHECK_GE(trajectory_id, 0);
   node_data_.resize(
       std::max(node_data_.size(), static_cast<size_t>(trajectory_id) + 1));
   node_data_[trajectory_id].push_back(NodeData{time, point_cloud_pose});
@@ -101,7 +101,7 @@ void OptimizationProblem::AddTrajectoryNode(
 
 void OptimizationProblem::AddSubmap(const int trajectory_id,
                                     const transform::Rigid3d& submap_pose) {
-  CHECK_GE(trajectory_id, 0);
+//  CHECK_GE(trajectory_id, 0);
   submap_data_.resize(
       std::max(submap_data_.size(), static_cast<size_t>(trajectory_id) + 1));
   submap_data_[trajectory_id].push_back(SubmapData{submap_pose});
@@ -131,8 +131,8 @@ void OptimizationProblem::Solve(const std::vector<Constraint>& constraints,
   };
 
   // Set the starting point.
-  CHECK(!submap_data_.empty());
-  CHECK(!submap_data_[0].empty());
+//  CHECK(!submap_data_.empty());
+//  CHECK(!submap_data_[0].empty());
   // TODO(hrapp): Move ceres data into SubmapData.
   std::vector<std::deque<CeresPose>> C_submaps(submap_data_.size());
   std::vector<std::deque<CeresPose>> C_nodes(node_data_.size());
@@ -214,10 +214,10 @@ void OptimizationProblem::Solve(const std::vector<Constraint>& constraints,
     problem.AddParameterBlock(trajectory_data.imu_calibration.data(), 4,
                               new ceres::QuaternionParameterization());
     const std::deque<sensor::ImuData>& imu_data = imu_data_.at(trajectory_id);
-    CHECK(!imu_data.empty());
+//    CHECK(!imu_data.empty());
     // TODO(whess): Add support for empty trajectories.
     const auto& node_data = node_data_[trajectory_id];
-    CHECK(!node_data.empty());
+//    CHECK(!node_data.empty());
 
     // Skip IMU data before the first node of this trajectory.
     auto it = imu_data.cbegin();

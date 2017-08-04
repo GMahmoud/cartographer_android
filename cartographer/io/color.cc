@@ -66,7 +66,7 @@ Color HsvToRgb(const float h, const float s, const float v) {
 }  // namespace
 
 Color GetColor(int id) {
-  CHECK_GE(id, 0);
+//  CHECK_GE(id, 0);
   // Uniform color sampling using the golden ratio from
   // http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
   const float hue = std::fmod(kInitialHue + kGoldenRatioConjugate * id, 1.f);

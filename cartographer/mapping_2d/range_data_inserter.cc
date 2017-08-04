@@ -38,8 +38,8 @@ proto::RangeDataInserterOptions CreateRangeDataInserterOptions(
       parameter_dictionary->HasKey("insert_free_space")
           ? parameter_dictionary->GetBool("insert_free_space")
           : true);
-  CHECK_GT(options.hit_probability(), 0.5);
-  CHECK_LT(options.miss_probability(), 0.5);
+//  CHECK_GT(options.hit_probability(), 0.5);
+//  CHECK_LT(options.miss_probability(), 0.5);
   return options;
 }
 
@@ -56,7 +56,7 @@ void RangeDataInserter::Insert(const sensor::RangeData& range_data,
   // By not finishing the update after hits are inserted, we give hits priority
   // (i.e. no hits will be ignored because of a miss in the same cell).
   CastRays(range_data, hit_table_, miss_table_, options_.insert_free_space(),
-           CHECK_NOTNULL(probability_grid));
+//           CHECK_NOTNULL(probability_grid));
   probability_grid->FinishUpdate();
 }
 

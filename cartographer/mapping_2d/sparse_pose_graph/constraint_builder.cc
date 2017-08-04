@@ -53,10 +53,10 @@ ConstraintBuilder::ConstraintBuilder(
 
 ConstraintBuilder::~ConstraintBuilder() {
   common::MutexLocker locker(&mutex_);
-  CHECK_EQ(constraints_.size(), 0) << "WhenDone() was not called";
-  CHECK_EQ(pending_computations_.size(), 0);
-  CHECK_EQ(submap_queued_work_items_.size(), 0);
-  CHECK(when_done_ == nullptr);
+//  CHECK_EQ(constraints_.size(), 0) << "WhenDone() was not called";
+//  CHECK_EQ(pending_computations_.size(), 0);
+//  CHECK_EQ(submap_queued_work_items_.size(), 0);
+//  CHECK(when_done_ == nullptr);
 }
 
 void ConstraintBuilder::MaybeAddConstraint(
@@ -113,7 +113,7 @@ void ConstraintBuilder::NotifyEndOfScan() {
 void ConstraintBuilder::WhenDone(
     const std::function<void(const ConstraintBuilder::Result&)> callback) {
   common::MutexLocker locker(&mutex_);
-  CHECK(when_done_ == nullptr);
+//  CHECK(when_done_ == nullptr);
   when_done_ =
       common::make_unique<std::function<void(const Result&)>>(callback);
   ++pending_computations_[current_computation_];
@@ -156,7 +156,7 @@ ConstraintBuilder::GetSubmapScanMatcher(const mapping::SubmapId& submap_id) {
   common::MutexLocker locker(&mutex_);
   const SubmapScanMatcher* submap_scan_matcher =
       &submap_scan_matchers_[submap_id];
-  CHECK(submap_scan_matcher->fast_correlative_scan_matcher != nullptr);
+//  CHECK(submap_scan_matcher->fast_correlative_scan_matcher != nullptr);
   return submap_scan_matcher;
 }
 
@@ -190,9 +190,9 @@ void ConstraintBuilder::ComputeConstraint(
     if (submap_scan_matcher->fast_correlative_scan_matcher->MatchFullSubmap(
             filtered_point_cloud, options_.global_localization_min_score(),
             &score, &pose_estimate)) {
-      CHECK_GT(score, options_.global_localization_min_score());
-      CHECK_GE(node_id.trajectory_id, 0);
-      CHECK_GE(submap_id.trajectory_id, 0);
+//      CHECK_GT(score, options_.global_localization_min_score());
+//      CHECK_GE(node_id.trajectory_id, 0);
+//      CHECK_GE(submap_id.trajectory_id, 0);
       trajectory_connectivity->Connect(node_id.trajectory_id,
                                        submap_id.trajectory_id);
     } else {
@@ -203,7 +203,7 @@ void ConstraintBuilder::ComputeConstraint(
             initial_pose, filtered_point_cloud, options_.min_score(), &score,
             &pose_estimate)) {
       // We've reported a successful local match.
-      CHECK_GT(score, options_.min_score());
+//      CHECK_GT(score, options_.min_score());
     } else {
       return;
     }
@@ -257,7 +257,7 @@ void ConstraintBuilder::FinishComputation(const int computation_index) {
       pending_computations_.erase(computation_index);
     }
     if (pending_computations_.empty()) {
-      CHECK_EQ(submap_queued_work_items_.size(), 0);
+//      CHECK_EQ(submap_queued_work_items_.size(), 0);
       if (when_done_ != nullptr) {
         for (const std::unique_ptr<Constraint>& constraint : constraints_) {
           if (constraint != nullptr) {
@@ -290,7 +290,7 @@ int ConstraintBuilder::GetNumFinishedScans() {
 
 void ConstraintBuilder::DeleteScanMatcher(const mapping::SubmapId& submap_id) {
   common::MutexLocker locker(&mutex_);
-  CHECK(pending_computations_.empty());
+//  CHECK(pending_computations_.empty());
   submap_scan_matchers_.erase(submap_id);
 }
 

@@ -49,7 +49,7 @@ void WriteBinaryPlyHeader(const bool has_color, const int64 num_points,
          << "property float z\n"
          << color_header << "end_header\n";
   const string out = stream.str();
-  CHECK(file_writer->WriteHeader(out.data(), out.size()));
+//  CHECK(file_writer->WriteHeader(out.data(), out.size()));
 }
 
 void WriteBinaryPlyPointCoordinate(const Eigen::Vector3f& point,
@@ -58,12 +58,12 @@ void WriteBinaryPlyPointCoordinate(const Eigen::Vector3f& point,
   memcpy(buffer, &point[0], sizeof(float));
   memcpy(buffer + 4, &point[1], sizeof(float));
   memcpy(buffer + 8, &point[2], sizeof(float));
-  CHECK(file_writer->Write(buffer, 12));
+//  CHECK(file_writer->Write(buffer, 12));
 }
 
 void WriteBinaryPlyPointColor(const Color& color,
                               FileWriter* const file_writer) {
-  CHECK(file_writer->Write(reinterpret_cast<const char*>(color.data()),
+//  CHECK(file_writer->Write(reinterpret_cast<const char*>(color.data()),
                            color.size()));
 }
 
@@ -87,7 +87,7 @@ PlyWritingPointsProcessor::PlyWritingPointsProcessor(
 
 PointsProcessor::FlushResult PlyWritingPointsProcessor::Flush() {
   WriteBinaryPlyHeader(has_colors_, num_points_, file_.get());
-  CHECK(file_->Close()) << "Closing PLY file_writer failed.";
+//  CHECK(file_->Close()) << "Closing PLY file_writer failed.";
 
   switch (next_->Flush()) {
     case FlushResult::kFinished:
@@ -111,7 +111,7 @@ void PlyWritingPointsProcessor::Process(std::unique_ptr<PointsBatch> batch) {
     WriteBinaryPlyHeader(has_colors_, 0, file_.get());
   }
   if (has_colors_) {
-    CHECK_EQ(batch->points.size(), batch->colors.size())
+//    CHECK_EQ(batch->points.size(), batch->colors.size())
         << "First PointsBatch had colors, but encountered one without. "
            "frame_id: "
         << batch->frame_id;

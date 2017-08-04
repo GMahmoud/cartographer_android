@@ -42,20 +42,20 @@ OrderedMultiQueue::OrderedMultiQueue() {}
 
 OrderedMultiQueue::~OrderedMultiQueue() {
   for (auto& entry : queues_) {
-    CHECK(entry.second.finished);
+//    CHECK(entry.second.finished);
   }
 }
 
 void OrderedMultiQueue::AddQueue(const QueueKey& queue_key, Callback callback) {
-  CHECK_EQ(queues_.count(queue_key), 0);
+//  CHECK_EQ(queues_.count(queue_key), 0);
   queues_[queue_key].callback = std::move(callback);
 }
 
 void OrderedMultiQueue::MarkQueueAsFinished(const QueueKey& queue_key) {
   auto it = queues_.find(queue_key);
-  CHECK(it != queues_.end()) << "Did not find '" << queue_key << "'.";
+//  CHECK(it != queues_.end()) << "Did not find '" << queue_key << "'.";
   auto& queue = it->second;
-  CHECK(!queue.finished);
+//  CHECK(!queue.finished);
   queue.finished = true;
   Dispatch();
 }
@@ -85,7 +85,7 @@ void OrderedMultiQueue::Flush() {
 }
 
 QueueKey OrderedMultiQueue::GetBlocker() const {
-  CHECK(!queues_.empty());
+//  CHECK(!queues_.empty());
   return blocker_;
 }
 
@@ -109,12 +109,12 @@ void OrderedMultiQueue::Dispatch() {
         next_queue = &it->second;
         next_queue_key = it->first;
       }
-      CHECK_LE(last_dispatched_time_, next_data->time)
+//      CHECK_LE(last_dispatched_time_, next_data->time)
           << "Non-sorted data added to queue: '" << it->first << "'";
       ++it;
     }
     if (next_data == nullptr) {
-      CHECK(queues_.empty());
+//      CHECK(queues_.empty());
       return;
     }
 

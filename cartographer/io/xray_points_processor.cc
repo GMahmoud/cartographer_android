@@ -173,7 +173,7 @@ void XRayPointsProcessor::WriteVoxels(const Aggregation& aggregation,
   // TODO(hrapp): Draw trajectories here.
 
 //  image.WritePng(file_writer);
-  CHECK(file_writer->Close());
+//  CHECK(file_writer->Close());
 }
 
 void XRayPointsProcessor::Insert(const PointsBatch& batch,
@@ -198,7 +198,7 @@ void XRayPointsProcessor::Insert(const PointsBatch& batch,
 
 void XRayPointsProcessor::Process(std::unique_ptr<PointsBatch> batch) {
   if (floors_.empty()) {
-    CHECK_EQ(aggregations_.size(), 1);
+//    CHECK_EQ(aggregations_.size(), 1);
     Insert(*batch, &aggregations_[0]);
   } else {
     for (size_t i = 0; i < floors_.size(); ++i) {
@@ -213,7 +213,7 @@ void XRayPointsProcessor::Process(std::unique_ptr<PointsBatch> batch) {
 
 PointsProcessor::FlushResult XRayPointsProcessor::Flush() {
   if (floors_.empty()) {
-    CHECK_EQ(aggregations_.size(), 1);
+//    CHECK_EQ(aggregations_.size(), 1);
     WriteVoxels(aggregations_[0],
                 file_writer_factory_(output_filename_ + ".png").get());
   } else {

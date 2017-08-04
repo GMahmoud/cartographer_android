@@ -28,7 +28,7 @@ OdometryState::OdometryState(const common::Time time,
 
 OdometryStateTracker::OdometryStateTracker(const int window_size)
     : window_size_(window_size) {
-  CHECK_GT(window_size, 0);
+//  CHECK_GT(window_size, 0);
 }
 
 const OdometryStateTracker::OdometryStates&

@@ -44,7 +44,7 @@ namespace {
 // Replace the string at the top of the stack through a quoted version that Lua
 // can read back.
 void QuoteStringOnStack(lua_State* L) {
-  CHECK(lua_isstring(L, -1)) << "Top of stack is not a string value.";
+//  CHECK(lua_isstring(L, -1)) << "Top of stack is not a string value.";
   int current_index = lua_gettop(L);
 
   // S: ... string
@@ -76,19 +76,19 @@ LuaParameterDictionary* GetDictionaryFromRegistry(lua_State* L) {
   lua_gettable(L, LUA_REGISTRYINDEX);
   void* return_value = lua_isnil(L, -1) ? nullptr : lua_touserdata(L, -1);
   lua_pop(L, 1);
-  CHECK(return_value != nullptr);
+//  CHECK(return_value != nullptr);
   return reinterpret_cast<LuaParameterDictionary*>(return_value);
 }
 
-// CHECK()s if a Lua method returned an error.
+//// CHECK()s if a Lua method returned an error.
 void CheckForLuaErrors(lua_State* L, int status) {
-  CHECK_EQ(status, 0) << lua_tostring(L, -1);
+//  CHECK_EQ(status, 0) << lua_tostring(L, -1);
 }
 
 // Returns 'a' if 'condition' is true, else 'b'.
 int LuaChoose(lua_State* L) {
-  CHECK_EQ(lua_gettop(L), 3) << "choose() takes (condition, a, b).";
-  CHECK(lua_isboolean(L, 1)) << "condition is not a boolean value.";
+//  CHECK_EQ(lua_gettop(L), 3) << "choose() takes (condition, a, b).";
+//  CHECK(lua_isboolean(L, 1)) << "condition is not a boolean value.";
 
   const bool condition = lua_toboolean(L, 1);
   if (condition) {
@@ -113,9 +113,9 @@ void GetValueFromLuaTable(lua_State* L, const T& key) {
   lua_rawget(L, -2);
 }
 
-// CHECK() that the topmost parameter on the Lua stack is a table.
+//// CHECK() that the topmost parameter on the Lua stack is a table.
 void CheckTableIsAtTopOfStack(lua_State* L) {
-  CHECK(lua_istable(L, -1)) << "Topmost item on Lua stack is not a table!";
+//  CHECK(lua_istable(L, -1)) << "Topmost item on Lua stack is not a table!";
 }
 
 // Returns true if 'key' is in the table at the top of the Lua stack.
@@ -166,7 +166,7 @@ LuaParameterDictionary::LuaParameterDictionary(
       index_into_reference_table_(-1),
       file_resolver_(std::move(file_resolver)),
       reference_count_(reference_count) {
-  CHECK_NOTNULL(L_);
+//  CHECK_NOTNULL(L_);
   SetDictionaryInRegistry(L_, this);
 
   luaL_openlibs(L_);
@@ -186,13 +186,13 @@ LuaParameterDictionary::LuaParameterDictionary(
     : L_(lua_newthread(L)),
       file_resolver_(std::move(file_resolver)),
       reference_count_(reference_count) {
-  CHECK_NOTNULL(L_);
+//  CHECK_NOTNULL(L_);
 
   // Make sure this is never garbage collected.
-  CHECK(lua_isthread(L, -1));
+//  CHECK(lua_isthread(L, -1));
   index_into_reference_table_ = luaL_ref(L, LUA_REGISTRYINDEX);
 
-  CHECK(lua_istable(L, -1)) << "Topmost item on Lua stack is not a table!";
+//  CHECK(lua_istable(L, -1)) << "Topmost item on Lua stack is not a table!";
   lua_xmove(L, L_, 1);  // Moves the table and the coroutine over.
   CheckTableIsAtTopOfStack(L_);
 }
@@ -233,7 +233,7 @@ string LuaParameterDictionary::GetString(const string& key) {
 }
 
 string LuaParameterDictionary::PopString(Quoted quoted) const {
-  CHECK(lua_isstring(L_, -1)) << "Top of stack is not a string value.";
+//  CHECK(lua_isstring(L_, -1)) << "Top of stack is not a string value.";
   if (quoted == Quoted::YES) {
     QuoteStringOnStack(L_);
   }
@@ -250,7 +250,7 @@ double LuaParameterDictionary::GetDouble(const string& key) {
 }
 
 double LuaParameterDictionary::PopDouble() const {
-  CHECK(lua_isnumber(L_, -1)) << "Top of stack is not a number value.";
+//  CHECK(lua_isnumber(L_, -1)) << "Top of stack is not a number value.";
   const double value = lua_tonumber(L_, -1);
   lua_pop(L_, 1);
   return value;
@@ -263,7 +263,7 @@ int LuaParameterDictionary::GetInt(const string& key) {
 }
 
 int LuaParameterDictionary::PopInt() const {
-  CHECK(lua_isnumber(L_, -1)) << "Top of stack is not a number value.";
+//  CHECK(lua_isnumber(L_, -1)) << "Top of stack is not a number value.";
   const int value = lua_tointeger(L_, -1);
   lua_pop(L_, 1);
   return value;
@@ -276,7 +276,7 @@ bool LuaParameterDictionary::GetBool(const string& key) {
 }
 
 bool LuaParameterDictionary::PopBool() const {
-  CHECK(lua_isboolean(L_, -1)) << "Top of stack is not a boolean value.";
+//  CHECK(lua_isboolean(L_, -1)) << "Top of stack is not a boolean value.";
   const bool value = lua_toboolean(L_, -1);
   lua_pop(L_, 1);
   return value;
@@ -397,7 +397,7 @@ std::vector<string> LuaParameterDictionary::GetArrayValuesAsStrings() {
 }
 
 void LuaParameterDictionary::CheckHasKey(const string& key) const {
-  CHECK(HasKey(key)) << "Key '" << key << "' not in dictionary:\n"
+//  CHECK(HasKey(key)) << "Key '" << key << "' not in dictionary:\n"
                      << ToString();
 }
 
@@ -408,9 +408,9 @@ void LuaParameterDictionary::CheckHasKeyAndReference(const string& key) {
 
 void LuaParameterDictionary::CheckAllKeysWereUsedExactlyOnceAndReset() {
   for (const auto& key : GetKeys()) {
-    CHECK_EQ(1, reference_counts_.count(key))
+//    CHECK_EQ(1, reference_counts_.count(key))
         << "Key '" << key << "' was used the wrong number of times.";
-    CHECK_EQ(1, reference_counts_.at(key))
+//    CHECK_EQ(1, reference_counts_.at(key))
         << "Key '" << key << "' was used the wrong number of times.";
   }
   reference_counts_.clear();
@@ -418,15 +418,15 @@ void LuaParameterDictionary::CheckAllKeysWereUsedExactlyOnceAndReset() {
 
 int LuaParameterDictionary::GetNonNegativeInt(const string& key) {
   const int temp = GetInt(key);  // Will increase reference count.
-  CHECK_GE(temp, 0) << temp << " is negative.";
+//  CHECK_GE(temp, 0) << temp << " is negative.";
   return temp;
 }
 
 // Lua function to run a script in the current Lua context. Takes the filename
 // as its only argument.
 int LuaParameterDictionary::LuaInclude(lua_State* L) {
-  CHECK_EQ(lua_gettop(L), 1);
-  CHECK(lua_isstring(L, -1)) << "include takes a filename.";
+//  CHECK_EQ(lua_gettop(L), 1);
+//  CHECK(lua_isstring(L, -1)) << "include takes a filename.";
 
   LuaParameterDictionary* parameter_dictionary = GetDictionaryFromRegistry(L);
   const string basename = lua_tostring(L, -1);
@@ -445,7 +445,7 @@ int LuaParameterDictionary::LuaInclude(lua_State* L) {
   }
   parameter_dictionary->included_files_.push_back(filename);
   lua_pop(L, 1);
-  CHECK_EQ(lua_gettop(L), 0);
+//  CHECK_EQ(lua_gettop(L), 0);
 
   const string content =
       parameter_dictionary->file_resolver_->GetFileContentOrDie(basename);
@@ -458,8 +458,8 @@ int LuaParameterDictionary::LuaInclude(lua_State* L) {
 
 // Lua function to read a file into a string.
 int LuaParameterDictionary::LuaRead(lua_State* L) {
-  CHECK_EQ(lua_gettop(L), 1);
-  CHECK(lua_isstring(L, -1)) << "read takes a filename.";
+//  CHECK_EQ(lua_gettop(L), 1);
+//  CHECK(lua_isstring(L, -1)) << "read takes a filename.";
 
   LuaParameterDictionary* parameter_dictionary = GetDictionaryFromRegistry(L);
   const string file_content =

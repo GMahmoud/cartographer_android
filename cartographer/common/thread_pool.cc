@@ -36,9 +36,9 @@ ThreadPool::ThreadPool(int num_threads) {
 ThreadPool::~ThreadPool() {
   {
     MutexLocker locker(&mutex_);
-    CHECK(running_);
+//    CHECK(running_);
     running_ = false;
-    CHECK_EQ(work_queue_.size(), 0);
+//    CHECK_EQ(work_queue_.size(), 0);
   }
   for (std::thread& thread : pool_) {
     thread.join();
@@ -47,7 +47,7 @@ ThreadPool::~ThreadPool() {
 
 void ThreadPool::Schedule(std::function<void()> work_item) {
   MutexLocker locker(&mutex_);
-  CHECK(running_);
+//  CHECK(running_);
   work_queue_.push_back(work_item);
 }
 
@@ -56,7 +56,7 @@ void ThreadPool::DoWork() {
   // This changes the per-thread nice level of the current thread on Linux. We
   // do this so that the background work done by the thread pool is not taking
   // away CPU resources from more important foreground threads.
-  CHECK_NE(nice(10), -1);
+//  CHECK_NE(nice(10), -1);
 #endif
   for (;;) {
     std::function<void()> work_item;
@@ -72,7 +72,7 @@ void ThreadPool::DoWork() {
         return;
       }
     }
-    CHECK(work_item);
+//    CHECK(work_item);
     work_item();
   }
 }

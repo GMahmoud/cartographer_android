@@ -38,14 +38,14 @@ namespace mapping_3d {
 // Converts an 'index' with each dimension from 0 to 2^'bits' - 1 to a flat
 // z-major index.
 inline int ToFlatIndex(const Eigen::Array3i& index, const int bits) {
-  DCHECK((index >= 0).all() && (index < (1 << bits)).all()) << index;
+//  DCHECK((index >= 0).all() && (index < (1 << bits)).all()) << index;
   return (((index.z() << bits) + index.y()) << bits) + index.x();
 }
 
 // Converts a flat z-major 'index' to a 3-dimensional index with each dimension
 // from 0 to 2^'bits' - 1.
 inline Eigen::Array3i To3DIndex(const int index, const int bits) {
-  DCHECK_LT(index, 1 << (3 * bits));
+//  DCHECK_LT(index, 1 << (3 * bits));
   const int mask = (1 << bits) - 1;
   return Eigen::Array3i(index & mask, (index >> bits) & mask,
                         (index >> bits) >> bits);
@@ -109,7 +109,7 @@ class FlatGrid {
     }
 
     void Next() {
-      DCHECK(!Done());
+//      DCHECK(!Done());
       do {
         ++current_;
       } while (!Done() && IsDefaultValue(*current_));
@@ -118,13 +118,13 @@ class FlatGrid {
     bool Done() const { return current_ == end_; }
 
     Eigen::Array3i GetCellIndex() const {
-      DCHECK(!Done());
+//      DCHECK(!Done());
       const int index = (1 << (3 * kBits)) - (end_ - current_);
       return To3DIndex(index, kBits);
     }
 
     const ValueType& GetValue() const {
-      DCHECK(!Done());
+//      DCHECK(!Done());
       return *current_;
     }
 
@@ -190,7 +190,7 @@ class NestedGrid {
     }
 
     void Next() {
-      DCHECK(!Done());
+//      DCHECK(!Done());
       nested_iterator_.Next();
       if (!nested_iterator_.Done()) {
         return;
@@ -202,14 +202,14 @@ class NestedGrid {
     bool Done() const { return current_ == end_; }
 
     Eigen::Array3i GetCellIndex() const {
-      DCHECK(!Done());
+//      DCHECK(!Done());
       const int index = (1 << (3 * kBits)) - (end_ - current_);
       return To3DIndex(index, kBits) * WrappedGrid::grid_size() +
              nested_iterator_.GetCellIndex();
     }
 
     const ValueType& GetValue() const {
-      DCHECK(!Done());
+//      DCHECK(!Done());
       return nested_iterator_.GetValue();
     }
 
@@ -234,9 +234,9 @@ class NestedGrid {
   // Returns the Eigen::Array3i (meta) index of the meta cell containing
   // 'index'.
   Eigen::Array3i GetMetaIndex(const Eigen::Array3i& index) const {
-    DCHECK((index >= 0).all()) << index;
+//    DCHECK((index >= 0).all()) << index;
     const Eigen::Array3i meta_index = index / WrappedGrid::grid_size();
-    DCHECK((meta_index < (1 << kBits)).all()) << index;
+//    DCHECK((meta_index < (1 << kBits)).all()) << index;
     return meta_index;
   }
 
@@ -313,7 +313,7 @@ class DynamicGrid {
     }
 
     void Next() {
-      DCHECK(!Done());
+//      DCHECK(!Done());
       nested_iterator_.Next();
       if (!nested_iterator_.Done()) {
         return;
@@ -325,7 +325,7 @@ class DynamicGrid {
     bool Done() const { return current_ == end_; }
 
     Eigen::Array3i GetCellIndex() const {
-      DCHECK(!Done());
+//      DCHECK(!Done());
       const int outer_index = (1 << (3 * bits_)) - (end_ - current_);
       const Eigen::Array3i shifted_index =
           To3DIndex(outer_index, bits_) * WrappedGrid::grid_size() +
@@ -334,7 +334,7 @@ class DynamicGrid {
     }
 
     const ValueType& GetValue() const {
-      DCHECK(!Done());
+//      DCHECK(!Done());
       return nested_iterator_.GetValue();
     }
 
@@ -375,16 +375,16 @@ class DynamicGrid {
   // Returns the Eigen::Array3i (meta) index of the meta cell containing
   // 'index'.
   Eigen::Array3i GetMetaIndex(const Eigen::Array3i& index) const {
-    DCHECK((index >= 0).all()) << index;
+//    DCHECK((index >= 0).all()) << index;
     const Eigen::Array3i meta_index = index / WrappedGrid::grid_size();
-    DCHECK((meta_index < (1 << bits_)).all()) << index;
+//    DCHECK((meta_index < (1 << bits_)).all()) << index;
     return meta_index;
   }
 
   // Grows this grid by a factor of 2 in each of the 3 dimensions.
   void Grow() {
     const int new_bits = bits_ + 1;
-    CHECK_LE(new_bits, 8);
+//    CHECK_LE(new_bits, 8);
     std::vector<std::unique_ptr<WrappedGrid>> new_meta_cells_(
         8 * meta_cells_.size());
     for (int z = 0; z != (1 << bits_); ++z) {
@@ -434,8 +434,8 @@ class HybridGridBase : public Grid<ValueType> {
 
   // Returns one of the octants, (0, 0, 0), (1, 0, 0), ..., (1, 1, 1).
   static Eigen::Array3i GetOctant(const int i) {
-    DCHECK_GE(i, 0);
-    DCHECK_LT(i, 8);
+//    DCHECK_GE(i, 0);
+//    DCHECK_LT(i, 8);
     return Eigen::Array3i(static_cast<bool>(i & 1), static_cast<bool>(i & 2),
                           static_cast<bool>(i & 4));
   }
@@ -468,9 +468,9 @@ class HybridGrid : public HybridGridBase<uint16> {
 
   explicit HybridGrid(const proto::HybridGrid& proto)
       : HybridGrid(proto.resolution()) {
-    CHECK_EQ(proto.values_size(), proto.x_indices_size());
-    CHECK_EQ(proto.values_size(), proto.y_indices_size());
-    CHECK_EQ(proto.values_size(), proto.z_indices_size());
+//    CHECK_EQ(proto.values_size(), proto.x_indices_size());
+//    CHECK_EQ(proto.values_size(), proto.y_indices_size());
+//    CHECK_EQ(proto.values_size(), proto.z_indices_size());
     for (int i = 0; i < proto.values_size(); ++i) {
       // SetProbability does some error checking for us.
       SetProbability(Eigen::Vector3i(proto.x_indices(i), proto.y_indices(i),
@@ -487,7 +487,7 @@ class HybridGrid : public HybridGridBase<uint16> {
   // Finishes the update sequence.
   void FinishUpdate() {
     while (!update_indices_.empty()) {
-      DCHECK_GE(*update_indices_.back(), mapping::kUpdateMarker);
+//      DCHECK_GE(*update_indices_.back(), mapping::kUpdateMarker);
       *update_indices_.back() -= mapping::kUpdateMarker;
       update_indices_.pop_back();
     }
@@ -502,14 +502,14 @@ class HybridGrid : public HybridGridBase<uint16> {
   // will be set to probability corresponding to 'odds'.
   bool ApplyLookupTable(const Eigen::Array3i& index,
                         const std::vector<uint16>& table) {
-    DCHECK_EQ(table.size(), mapping::kUpdateMarker);
+//    DCHECK_EQ(table.size(), mapping::kUpdateMarker);
     uint16* const cell = mutable_value(index);
     if (*cell >= mapping::kUpdateMarker) {
       return false;
     }
     update_indices_.push_back(cell);
     *cell = table[*cell];
-    DCHECK_GE(*cell, mapping::kUpdateMarker);
+//    DCHECK_GE(*cell, mapping::kUpdateMarker);
     return true;
   }
 
@@ -522,7 +522,7 @@ class HybridGrid : public HybridGridBase<uint16> {
   bool IsKnown(const Eigen::Array3i& index) const { return value(index) != 0; }
 
   proto::HybridGrid ToProto() const {
-    CHECK(update_indices_.empty()) << "Serializing a grid during an update is "
+//    CHECK(update_indices_.empty()) << "Serializing a grid during an update is "
                                       "not supported. Finish the update first.";
     proto::HybridGrid result;
     result.set_resolution(resolution());

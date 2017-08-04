@@ -49,7 +49,7 @@ void AddValueToHistogram(float angle, const float value,
 }
 
 Eigen::Vector3f ComputeCentroid(const sensor::PointCloud& slice) {
-  CHECK(!slice.empty());
+//  CHECK(!slice.empty());
   Eigen::Vector3f sum = Eigen::Vector3f::Zero();
   for (const Eigen::Vector3f& point : slice) {
     sum += point;

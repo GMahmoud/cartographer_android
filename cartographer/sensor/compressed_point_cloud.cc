@@ -57,7 +57,7 @@ CompressedPointCloud::ConstIterator::EndIterator(
 }
 
 Eigen::Vector3f CompressedPointCloud::ConstIterator::operator*() const {
-  CHECK_GT(remaining_points_, 0);
+//  CHECK_GT(remaining_points_, 0);
   return current_point_;
 }
 
@@ -72,7 +72,7 @@ operator++() {
 
 bool CompressedPointCloud::ConstIterator::operator!=(
     const ConstIterator& it) const {
-  CHECK(compressed_point_cloud_ == it.compressed_point_cloud_);
+//  CHECK(compressed_point_cloud_ == it.compressed_point_cloud_);
   return remaining_points_ != it.remaining_points_;
 }
 
@@ -106,11 +106,11 @@ CompressedPointCloud::CompressedPointCloud(const PointCloud& point_cloud)
   using Blocks = mapping_3d::HybridGridBase<std::vector<RasterPoint>>;
   Blocks blocks(kPrecision);
   int num_blocks = 0;
-  CHECK_LE(point_cloud.size(), std::numeric_limits<int>::max());
+//  CHECK_LE(point_cloud.size(), std::numeric_limits<int>::max());
   for (int point_index = 0; point_index < static_cast<int>(point_cloud.size());
        ++point_index) {
     const Eigen::Vector3f& point = point_cloud[point_index];
-    CHECK_LT(point.cwiseAbs().maxCoeff() / kPrecision,
+//    CHECK_LT(point.cwiseAbs().maxCoeff() / kPrecision,
              1 << kMaxBitsPerDirection)
         << "Point out of bounds: " << point;
     Eigen::Array3i raster_point;
@@ -129,7 +129,7 @@ CompressedPointCloud::CompressedPointCloud(const PointCloud& point_cloud)
   point_data_.reserve(4 * num_blocks + point_cloud.size());
   for (Blocks::Iterator it(blocks); !it.Done(); it.Next(), --num_blocks) {
     const auto& raster_points = it.GetValue();
-    CHECK_LE(raster_points.size(), std::numeric_limits<int32>::max());
+//    CHECK_LE(raster_points.size(), std::numeric_limits<int32>::max());
     point_data_.push_back(raster_points.size());
     const Eigen::Array3i block_coordinate = it.GetCellIndex();
     point_data_.push_back(block_coordinate.x());
@@ -142,7 +142,7 @@ CompressedPointCloud::CompressedPointCloud(const PointCloud& point_cloud)
                             raster_point.point.x());
     }
   }
-  CHECK_EQ(num_blocks, 0);
+//  CHECK_EQ(num_blocks, 0);
 }
 
 CompressedPointCloud::CompressedPointCloud(

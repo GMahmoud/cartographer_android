@@ -40,7 +40,7 @@ class TransformInterpolationBuffer {
   // Returns true if an interpolated transfrom can be computed at 'time'.
   bool Has(common::Time time) const;
 
-  // Returns an interpolated transform at 'time'. CHECK()s that a transform at
+//  // Returns an interpolated transform at 'time'. CHECK()s that a transform at
   // 'time' is available.
   transform::Rigid3d Lookup(common::Time time) const;
 

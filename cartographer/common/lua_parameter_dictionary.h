@@ -60,14 +60,14 @@ class LuaParameterDictionary {
   // Returns true if the key is in this dictionary.
   bool HasKey(const string& key) const;
 
-  // These methods CHECK() that the 'key' exists.
+//  // These methods CHECK() that the 'key' exists.
   string GetString(const string& key);
   double GetDouble(const string& key);
   int GetInt(const string& key);
   bool GetBool(const string& key);
   std::unique_ptr<LuaParameterDictionary> GetDictionary(const string& key);
 
-  // Gets an int from the dictionary and CHECK()s that it is non-negative.
+//  // Gets an int from the dictionary and CHECK()s that it is non-negative.
   int GetNonNegativeInt(const string& key);
 
   // Returns a string representation for this LuaParameterDictionary.
@@ -91,12 +91,12 @@ class LuaParameterDictionary {
   // Function that recurses to keep track of indent for ToString().
   string DoToString(const string& indent) const;
 
-  // Pop the top of the stack and CHECKs that the type is correct.
+//  // Pop the top of the stack and CHECKs that the type is correct.
   double PopDouble() const;
   int PopInt() const;
   bool PopBool() const;
 
-  // Pop the top of the stack and CHECKs that it is a string. The returned value
+//  // Pop the top of the stack and CHECKs that it is a string. The returned value
   // is either quoted to be suitable to be read back by a Lua interpretor or
   // not.
   enum class Quoted { YES, NO };
@@ -107,14 +107,14 @@ class LuaParameterDictionary {
   std::unique_ptr<LuaParameterDictionary> PopDictionary(
       ReferenceCount reference_count) const;
 
-  // CHECK() that 'key' is in the dictionary.
+//  // CHECK() that 'key' is in the dictionary.
   void CheckHasKey(const string& key) const;
 
-  // CHECK() that 'key' is in this dictionary and reference it as being used.
+//  // CHECK() that 'key' is in this dictionary and reference it as being used.
   void CheckHasKeyAndReference(const string& key);
 
   // If desired, this can be called in the destructor of a derived class. It
-  // will CHECK() that all keys defined in the configuration have been used
+//  // will CHECK() that all keys defined in the configuration have been used
   // exactly once and resets the reference counter.
   void CheckAllKeysWereUsedExactlyOnceAndReset();
 

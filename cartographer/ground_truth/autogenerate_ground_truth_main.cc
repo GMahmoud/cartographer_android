@@ -49,7 +49,7 @@ std::vector<double> ComputeCoveredDistance(
     const mapping::proto::Trajectory& trajectory) {
   std::vector<double> covered_distance;
   covered_distance.push_back(0.);
-  CHECK_GT(trajectory.node_size(), 0)
+//  CHECK_GT(trajectory.node_size(), 0)
       << "Trajectory does not contain any nodes.";
   for (int i = 1; i < trajectory.node_size(); ++i) {
     const auto last_pose = transform::ToRigid3(trajectory.node(i - 1).pose());
@@ -73,8 +73,8 @@ std::vector<int> ComputeSubmapRepresentativeNode(
         mapping::proto::SparsePoseGraph::Constraint::INTRA_SUBMAP) {
       continue;
     }
-    CHECK_EQ(constraint.submap_id().trajectory_id(), 0);
-    CHECK_EQ(constraint.node_id().trajectory_id(), 0);
+//    CHECK_EQ(constraint.submap_id().trajectory_id(), 0);
+//    CHECK_EQ(constraint.node_id().trajectory_id(), 0);
 
     const int next_submap_index = static_cast<int>(submap_to_node_index.size());
     const int submap_index = constraint.submap_id().submap_index();
@@ -82,7 +82,7 @@ std::vector<int> ComputeSubmapRepresentativeNode(
       continue;
     }
 
-    CHECK_EQ(submap_index, next_submap_index + 1);
+//    CHECK_EQ(submap_index, next_submap_index + 1);
     submap_to_node_index.push_back(constraint.node_id().node_index());
   }
   return submap_to_node_index;
@@ -110,8 +110,8 @@ proto::GroundTruth GenerateGroundTruth(
 
     // For some submaps at the very end, we have not chosen a representative
     // node, but those should not be part of loop closure anyway.
-    CHECK_EQ(constraint.submap_id().trajectory_id(), 0);
-    CHECK_EQ(constraint.node_id().trajectory_id(), 0);
+//    CHECK_EQ(constraint.submap_id().trajectory_id(), 0);
+//    CHECK_EQ(constraint.node_id().trajectory_id(), 0);
     if (constraint.submap_id().submap_index() >=
         static_cast<int>(submap_to_node_index.size())) {
       continue;
@@ -171,8 +171,8 @@ void Run(const string& pose_graph_filename, const string& output_filename,
   mapping::proto::SparsePoseGraph pose_graph;
   {
     io::ProtoStreamReader reader(pose_graph_filename);
-    CHECK(reader.ReadProto(&pose_graph));
-    CHECK_EQ(pose_graph.trajectory_size(), 1)
+//    CHECK(reader.ReadProto(&pose_graph));
+//    CHECK_EQ(pose_graph.trajectory_size(), 1)
         << "Only pose graphs containing a single trajectory are supported.";
   }
   LOG(INFO) << "Autogenerating ground truth relations...";
@@ -184,10 +184,10 @@ void Run(const string& pose_graph_filename, const string& output_filename,
   {
     std::ofstream output_stream(output_filename,
                                 std::ios_base::out | std::ios_base::binary);
-    CHECK(ground_truth.SerializeToOstream(&output_stream))
+//    CHECK(ground_truth.SerializeToOstream(&output_stream))
         << "Could not serialize ground truth data.";
     output_stream.close();
-    CHECK(output_stream) << "Could not write ground truth data.";
+//    CHECK(output_stream) << "Could not write ground truth data.";
   }
 }
 

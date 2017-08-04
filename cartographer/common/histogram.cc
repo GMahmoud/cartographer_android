@@ -31,7 +31,7 @@ namespace common {
 void Histogram::Add(const float value) { values_.push_back(value); }
 
 string Histogram::ToString(const int buckets) const {
-  CHECK_GE(buckets, 1);
+//  CHECK_GE(buckets, 1);
   if (values_.empty()) {
     return "Count: 0";
   }
@@ -46,7 +46,7 @@ string Histogram::ToString(const int buckets) const {
   if (min == max) {
     return result;
   }
-  CHECK_LT(min, max);
+//  CHECK_LT(min, max);
   float lower_bound = min;
   int total_count = 0;
   for (int i = 0; i != buckets; ++i) {

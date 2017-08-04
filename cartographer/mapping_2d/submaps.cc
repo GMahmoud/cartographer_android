@@ -58,7 +58,7 @@ proto::SubmapsOptions CreateSubmapsOptions(
   *options.mutable_range_data_inserter_options() =
       CreateRangeDataInserterOptions(
           parameter_dictionary->GetDictionary("range_data_inserter").get());
-  CHECK_GT(options.num_range_data(), 0);
+//  CHECK_GT(options.num_range_data(), 0);
   return options;
 }
 
@@ -130,13 +130,13 @@ void Submap::ToResponseProto(
 
 void Submap::InsertRangeData(const sensor::RangeData& range_data,
                              const RangeDataInserter& range_data_inserter) {
-  CHECK(!finished_);
+//  CHECK(!finished_);
   range_data_inserter.Insert(range_data, &probability_grid_);
   SetNumRangeData(num_range_data() + 1);
 }
 
 void Submap::Finish() {
-  CHECK(!finished_);
+//  CHECK(!finished_);
   probability_grid_ = ComputeCroppedProbabilityGrid(probability_grid_);
   finished_ = true;
 }

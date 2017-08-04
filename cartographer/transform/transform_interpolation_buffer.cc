@@ -30,7 +30,7 @@ namespace transform {
 void TransformInterpolationBuffer::Push(const common::Time time,
                                         const transform::Rigid3d& transform) {
   if (deque_.size() > 0) {
-    CHECK_GE(time, latest_time()) << "New transform is older than latest.";
+//    CHECK_GE(time, latest_time()) << "New transform is older than latest.";
   }
   deque_.push_back(TimestampedTransform{time, transform});
 }
@@ -44,7 +44,7 @@ bool TransformInterpolationBuffer::Has(const common::Time time) const {
 
 transform::Rigid3d TransformInterpolationBuffer::Lookup(
     const common::Time time) const {
-  CHECK(Has(time)) << "Missing transform for: " << time;
+//  CHECK(Has(time)) << "Missing transform for: " << time;
   auto start =
       std::lower_bound(deque_.begin(), deque_.end(), time,
                        [](const TimestampedTransform& timestamped_transform,
@@ -72,12 +72,12 @@ transform::Rigid3d TransformInterpolationBuffer::Lookup(
 }
 
 common::Time TransformInterpolationBuffer::earliest_time() const {
-  CHECK(!empty()) << "Empty buffer.";
+//  CHECK(!empty()) << "Empty buffer.";
   return deque_.front().time;
 }
 
 common::Time TransformInterpolationBuffer::latest_time() const {
-  CHECK(!empty()) << "Empty buffer.";
+//  CHECK(!empty()) << "Empty buffer.";
   return deque_.back().time;
 }
 

@@ -49,23 +49,23 @@ class SlidingWindowMaximum {
   }
 
   void RemoveValue(const float value) {
-    // DCHECK for performance, since this is done for every value in the
+//    // DCHECK for performance, since this is done for every value in the
     // precomputation grid.
-    DCHECK(!non_ascending_maxima_.empty());
-    DCHECK_LE(value, non_ascending_maxima_.front());
+//    DCHECK(!non_ascending_maxima_.empty());
+//    DCHECK_LE(value, non_ascending_maxima_.front());
     if (value == non_ascending_maxima_.front()) {
       non_ascending_maxima_.pop_front();
     }
   }
 
   float GetMaximum() const {
-    // DCHECK for performance, since this is done for every value in the
+//    // DCHECK for performance, since this is done for every value in the
     // precomputation grid.
-    DCHECK_GT(non_ascending_maxima_.size(), 0);
+//    DCHECK_GT(non_ascending_maxima_.size(), 0);
     return non_ascending_maxima_.front();
   }
 
-  void CheckIsEmpty() const { CHECK_EQ(non_ascending_maxima_.size(), 0); }
+//  void CheckIsEmpty() const { CHECK_EQ(non_ascending_maxima_.size(), 0); }
 
  private:
   // Maximum of the current sliding window at the front. Then the maximum of the
@@ -95,9 +95,9 @@ PrecomputationGrid::PrecomputationGrid(
       wide_limits_(limits.num_x_cells + width - 1,
                    limits.num_y_cells + width - 1),
       cells_(wide_limits_.num_x_cells * wide_limits_.num_y_cells) {
-  CHECK_GE(width, 1);
-  CHECK_GE(limits.num_x_cells, 1);
-  CHECK_GE(limits.num_y_cells, 1);
+//  CHECK_GE(width, 1);
+//  CHECK_GE(limits.num_x_cells, 1);
+//  CHECK_GE(limits.num_y_cells, 1);
   const int stride = wide_limits_.num_x_cells;
   // First we compute the maximum probability for each (x0, y) achieved in the
   // span defined by x0 <= x < x0 + width.
@@ -162,8 +162,8 @@ uint8 PrecomputationGrid::ComputeCellValue(const float probability) const {
   const int cell_value = common::RoundToInt(
       (probability - mapping::kMinProbability) *
       (255.f / (mapping::kMaxProbability - mapping::kMinProbability)));
-  CHECK_GE(cell_value, 0);
-  CHECK_LE(cell_value, 255);
+//  CHECK_GE(cell_value, 0);
+//  CHECK_LE(cell_value, 255);
   return cell_value;
 }
 
@@ -172,7 +172,7 @@ class PrecomputationGridStack {
   PrecomputationGridStack(
       const ProbabilityGrid& probability_grid,
       const proto::FastCorrelativeScanMatcherOptions& options) {
-    CHECK_GE(options.branch_and_bound_depth(), 1);
+//    CHECK_GE(options.branch_and_bound_depth(), 1);
     const int max_width = 1 << (options.branch_and_bound_depth() - 1);
     precomputation_grids_.reserve(options.branch_and_bound_depth());
     std::vector<float> reusable_intermediate_grid;
@@ -240,8 +240,8 @@ bool FastCorrelativeScanMatcher::MatchWithSearchParameters(
     const transform::Rigid2d& initial_pose_estimate,
     const sensor::PointCloud& point_cloud, float min_score, float* score,
     transform::Rigid2d* pose_estimate) const {
-  CHECK_NOTNULL(score);
-  CHECK_NOTNULL(pose_estimate);
+//  CHECK_NOTNULL(score);
+//  CHECK_NOTNULL(pose_estimate);
 
   const Eigen::Rotation2Dd initial_rotation = initial_pose_estimate.rotation();
   const sensor::PointCloud rotated_point_cloud = sensor::TransformPointCloud(
@@ -318,7 +318,7 @@ FastCorrelativeScanMatcher::GenerateLowestResolutionCandidates(
       }
     }
   }
-  CHECK_EQ(candidates.size(), num_candidates);
+//  CHECK_EQ(candidates.size(), num_candidates);
   return candidates;
 }
 

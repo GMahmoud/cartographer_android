@@ -45,8 +45,8 @@ CreateRealTimeCorrelativeScanMatcherOptions(
       parameter_dictionary->GetDouble("translation_delta_cost_weight"));
   options.set_rotation_delta_cost_weight(
       parameter_dictionary->GetDouble("rotation_delta_cost_weight"));
-  CHECK_GE(options.translation_delta_cost_weight(), 0.);
-  CHECK_GE(options.rotation_delta_cost_weight(), 0.);
+//  CHECK_GE(options.translation_delta_cost_weight(), 0.);
+//  CHECK_GE(options.rotation_delta_cost_weight(), 0.);
   return options;
 }
 
@@ -84,7 +84,7 @@ RealTimeCorrelativeScanMatcher::GenerateExhaustiveSearchCandidates(
       }
     }
   }
-  CHECK_EQ(candidates.size(), num_candidates);
+//  CHECK_EQ(candidates.size(), num_candidates);
   return candidates;
 }
 
@@ -93,7 +93,7 @@ double RealTimeCorrelativeScanMatcher::Match(
     const sensor::PointCloud& point_cloud,
     const ProbabilityGrid& probability_grid,
     transform::Rigid2d* pose_estimate) const {
-  CHECK_NOTNULL(pose_estimate);
+//  CHECK_NOTNULL(pose_estimate);
 
   const Eigen::Rotation2Dd initial_rotation = initial_pose_estimate.rotation();
   const sensor::PointCloud rotated_point_cloud = sensor::TransformPointCloud(
@@ -147,7 +147,7 @@ void RealTimeCorrelativeScanMatcher::ScoreCandidates(
                                    options_.translation_delta_cost_weight() +
                                std::abs(candidate.orientation) *
                                    options_.rotation_delta_cost_weight()));
-    CHECK_GT(candidate.score, 0.f);
+//    CHECK_GT(candidate.score, 0.f);
   }
 }
 

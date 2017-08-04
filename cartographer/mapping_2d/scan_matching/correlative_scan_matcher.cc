@@ -72,8 +72,8 @@ SearchParameters::SearchParameters(const int num_linear_perturbations,
 
 void SearchParameters::ShrinkToFit(const std::vector<DiscreteScan>& scans,
                                    const CellLimits& cell_limits) {
-  CHECK_EQ(scans.size(), num_scans);
-  CHECK_EQ(linear_bounds.size(), num_scans);
+//  CHECK_EQ(scans.size(), num_scans);
+//  CHECK_EQ(linear_bounds.size(), num_scans);
   for (int i = 0; i != num_scans; ++i) {
     Eigen::Array2i min_bound = Eigen::Array2i::Zero();
     Eigen::Array2i max_bound = Eigen::Array2i::Zero();

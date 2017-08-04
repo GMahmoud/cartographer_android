@@ -16,7 +16,7 @@ void WriteXyzPoint(const Eigen::Vector3f& point,
   stream << std::setprecision(6);
   stream << point.x() << " " << point.y() << " " << point.z() << "\n";
   const string out = stream.str();
-  CHECK(file_writer->Write(out.data(), out.size()));
+//  CHECK(file_writer->Write(out.data(), out.size()));
 }
 
 }  // namespace
@@ -35,7 +35,7 @@ XyzWriterPointsProcessor::FromDictionary(
 }
 
 PointsProcessor::FlushResult XyzWriterPointsProcessor::Flush() {
-  CHECK(file_writer_->Close()) << "Closing XYZ file failed.";
+//  CHECK(file_writer_->Close()) << "Closing XYZ file failed.";
   switch (next_->Flush()) {
     case FlushResult::kFinished:
       return FlushResult::kFinished;

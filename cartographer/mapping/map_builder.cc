@@ -48,7 +48,7 @@ proto::MapBuilderOptions CreateMapBuilderOptions(
       parameter_dictionary->GetNonNegativeInt("num_background_threads"));
   *options.mutable_sparse_pose_graph_options() = CreateSparsePoseGraphOptions(
       parameter_dictionary->GetDictionary("sparse_pose_graph").get());
-  CHECK_NE(options.use_trajectory_builder_2d(),
+//  CHECK_NE(options.use_trajectory_builder_2d(),
            options.use_trajectory_builder_3d());
   return options;
 }
@@ -74,7 +74,7 @@ int MapBuilder::AddTrajectoryBuilder(
     const proto::TrajectoryBuilderOptions& trajectory_options) {
   const int trajectory_id = trajectory_builders_.size();
   if (options_.use_trajectory_builder_3d()) {
-    CHECK(trajectory_options.has_trajectory_builder_3d_options());
+//    CHECK(trajectory_options.has_trajectory_builder_3d_options());
     trajectory_builders_.push_back(
         common::make_unique<CollatedTrajectoryBuilder>(
             &sensor_collator_, trajectory_id, expected_sensor_ids,
@@ -82,7 +82,7 @@ int MapBuilder::AddTrajectoryBuilder(
                 trajectory_options.trajectory_builder_3d_options(),
                 trajectory_id, sparse_pose_graph_3d_.get())));
   } else {
-    CHECK(trajectory_options.has_trajectory_builder_2d_options());
+//    CHECK(trajectory_options.has_trajectory_builder_2d_options());
     trajectory_builders_.push_back(
         common::make_unique<CollatedTrajectoryBuilder>(
             &sensor_collator_, trajectory_id, expected_sensor_ids,
@@ -192,7 +192,7 @@ void MapBuilder::SerializeState(io::ProtoStreamWriter* const writer) {
 
 void MapBuilder::LoadMap(io::ProtoStreamReader* const reader) {
   proto::SparsePoseGraph pose_graph;
-  CHECK(reader->ReadProto(&pose_graph));
+//  CHECK(reader->ReadProto(&pose_graph));
 
   // TODO(whess): Not all trajectories should be builders, i.e. support should
   // be added for trajectories without latest pose, options, etc. Appease the
@@ -224,7 +224,7 @@ void MapBuilder::LoadMap(io::ProtoStreamReader* const reader) {
                                              proto.submap());
     }
   }
-  CHECK(reader->eof());
+//  CHECK(reader->eof());
 }
 
 int MapBuilder::num_trajectory_builders() const {

@@ -36,9 +36,9 @@ void CastRay(const Eigen::Array2i& begin, const Eigen::Array2i& end,
     return;
   }
 
-  CHECK_GE(begin.x(), 0);
-  CHECK_GE(begin.y(), 0);
-  CHECK_GE(end.y(), 0);
+//  CHECK_GE(begin.x(), 0);
+//  CHECK_GE(begin.y(), 0);
+//  CHECK_GE(end.y(), 0);
 
   // Special case: We have to draw a vertical line in full pixels, as 'begin'
   // and 'end' have the same full pixel x coordinate.
@@ -112,8 +112,8 @@ void CastRay(const Eigen::Array2i& begin, const Eigen::Array2i& end,
       ++current.y();
       probability_grid->ApplyLookupTable(current, miss_table);
     }
-    CHECK_NE(sub_y, denominator);
-    CHECK_EQ(current.y(), end.y() / kSubpixelScale);
+//    CHECK_NE(sub_y, denominator);
+//    CHECK_EQ(current.y(), end.y() / kSubpixelScale);
     return;
   }
 
@@ -142,8 +142,8 @@ void CastRay(const Eigen::Array2i& begin, const Eigen::Array2i& end,
     --current.y();
     probability_grid->ApplyLookupTable(current, miss_table);
   }
-  CHECK_NE(sub_y, 0);
-  CHECK_EQ(current.y(), end.y() / kSubpixelScale);
+//  CHECK_NE(sub_y, 0);
+//  CHECK_EQ(current.y(), end.y() / kSubpixelScale);
 }
 
 void GrowAsNeeded(const sensor::RangeData& range_data,

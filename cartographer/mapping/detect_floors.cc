@@ -54,7 +54,7 @@ struct Span {
 // Union-find implementation for classifying spans into levels.
 int LevelFind(const int i, const Levels& levels) {
   auto it = levels.find(i);
-  CHECK(it != levels.end());
+//  CHECK(it != levels.end());
   if (it->first == it->second) {
     return it->second;
   }
@@ -72,14 +72,14 @@ void InsertSorted(const double val, std::vector<double>* vals) {
 }
 
 double Median(const std::vector<double>& sorted) {
-  CHECK(!sorted.empty());
+//  CHECK(!sorted.empty());
   return sorted.at(sorted.size() / 2);
 }
 
 // Cut the trajectory at jumps in z. A new span is started when the current
 // node's z differes by more than kLevelHeightMeters from the median z values.
 std::vector<Span> SliceByAltitudeChange(const proto::Trajectory& trajectory) {
-  CHECK_GT(trajectory.node_size(), 0);
+//  CHECK_GT(trajectory.node_size(), 0);
 
   std::vector<Span> spans;
   spans.push_back(Span{0, 0, {trajectory.node(0).pose().translation().z()}});

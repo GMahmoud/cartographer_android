@@ -50,11 +50,11 @@ IntegrateImuResult<T> IntegrateImu(
     const Eigen::Transform<T, 3, Eigen::Affine>& angular_velocity_calibration,
     const common::Time start_time, const common::Time end_time,
     std::deque<sensor::ImuData>::const_iterator* it) {
-  CHECK_LE(start_time, end_time);
-  CHECK(*it != imu_data.cend());
-  CHECK_LE((*it)->time, start_time);
+//  CHECK_LE(start_time, end_time);
+//  CHECK(*it != imu_data.cend());
+//  CHECK_LE((*it)->time, start_time);
   if ((*it) + 1 != imu_data.cend()) {
-    CHECK_GT(((*it) + 1)->time, start_time);
+//    CHECK_GT(((*it) + 1)->time, start_time);
   }
 
   common::Time current_time = start_time;

@@ -64,7 +64,7 @@ void OptimizationProblem::AddImuData(const int trajectory_id,
                                      const common::Time time,
                                      const Eigen::Vector3d& linear_acceleration,
                                      const Eigen::Vector3d& angular_velocity) {
-  CHECK_GE(trajectory_id, 0);
+//  CHECK_GE(trajectory_id, 0);
   imu_data_.resize(
       std::max(imu_data_.size(), static_cast<size_t>(trajectory_id) + 1));
   imu_data_[trajectory_id].push_back(
@@ -75,7 +75,7 @@ void OptimizationProblem::AddTrajectoryNode(
     const int trajectory_id, const common::Time time,
     const transform::Rigid2d& initial_point_cloud_pose,
     const transform::Rigid2d& point_cloud_pose) {
-  CHECK_GE(trajectory_id, 0);
+//  CHECK_GE(trajectory_id, 0);
   node_data_.resize(
       std::max(node_data_.size(), static_cast<size_t>(trajectory_id) + 1));
   node_data_[trajectory_id].push_back(
@@ -86,9 +86,9 @@ void OptimizationProblem::AddTrajectoryNode(
 void OptimizationProblem::TrimTrajectoryNode(const mapping::NodeId& node_id) {
   auto& trajectory_data = trajectory_data_.at(node_id.trajectory_id);
   // We only allow trimming from the start.
-  CHECK_EQ(trajectory_data.num_trimmed_nodes, node_id.node_index);
+//  CHECK_EQ(trajectory_data.num_trimmed_nodes, node_id.node_index);
   auto& node_data = node_data_.at(node_id.trajectory_id);
-  CHECK(!node_data.empty());
+//  CHECK(!node_data.empty());
   if (node_id.trajectory_id < static_cast<int>(imu_data_.size())) {
     const common::Time node_time = node_data.front().time;
     auto& imu_data = imu_data_.at(node_id.trajectory_id);
@@ -102,7 +102,7 @@ void OptimizationProblem::TrimTrajectoryNode(const mapping::NodeId& node_id) {
 
 void OptimizationProblem::AddSubmap(const int trajectory_id,
                                     const transform::Rigid2d& submap_pose) {
-  CHECK_GE(trajectory_id, 0);
+//  CHECK_GE(trajectory_id, 0);
   submap_data_.resize(
       std::max(submap_data_.size(), static_cast<size_t>(trajectory_id) + 1));
   submap_data_[trajectory_id].push_back(SubmapData{submap_pose});
@@ -113,9 +113,9 @@ void OptimizationProblem::AddSubmap(const int trajectory_id,
 void OptimizationProblem::TrimSubmap(const mapping::SubmapId& submap_id) {
   auto& trajectory_data = trajectory_data_.at(submap_id.trajectory_id);
   // We only allow trimming from the start.
-  CHECK_EQ(trajectory_data.num_trimmed_submaps, submap_id.submap_index);
+//  CHECK_EQ(trajectory_data.num_trimmed_submaps, submap_id.submap_index);
   auto& submap_data = submap_data_.at(submap_id.trajectory_id);
-  CHECK(!submap_data.empty());
+//  CHECK(!submap_data.empty());
   submap_data.pop_front();
   ++trajectory_data.num_trimmed_submaps;
 }

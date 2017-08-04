@@ -54,8 +54,8 @@ PrecomputationGrid ConvertToPrecomputationGrid(const HybridGrid& hybrid_grid) {
         (mapping::ValueToProbability(it.GetValue()) -
          mapping::kMinProbability) *
         (255.f / (mapping::kMaxProbability - mapping::kMinProbability)));
-    CHECK_GE(cell_value, 0);
-    CHECK_LE(cell_value, 255);
+//    CHECK_GE(cell_value, 0);
+//    CHECK_LE(cell_value, 255);
     *result.mutable_value(it.GetCellIndex()) = cell_value;
   }
   return result;
