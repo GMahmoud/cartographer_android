@@ -33,7 +33,9 @@ set(CARTOGRAPHER_SOVERSION ${CARTOGRAPHER_MAJOR_VERSION}.${CARTOGRAPHER_MINOR_VE
 set(BOOST_HDR ${ANDROID_SYSROOT}/boost-1_53)
 set(LUA_HDR ${ANDROID_SYSROOT}/lua-5.2.4)
 set(EIGEN_HDR ${ANDROID_SYSROOT}/eigen3)
-set(PROTOBUF_PROTOC_EXECUTABLE /usr/bin/protoc) 
+set(PROTOBUF_HDR ${ANDROID_SYSROOT})
+set(CERES_HDR ${ANDROID_SYSROOT})
+set(PROTOBUF_PROTOC_EXECUTABLE /home/maghob/Downloads/protobuf-2.6.0/src/protoc) 
 
 include("${PROJECT_SOURCE_DIR}/cmake/functions.cmake")
 message(STATUS "-----------------------")
@@ -42,9 +44,8 @@ message(STATUS "-----------------------")
 
 include_directories(${LUA_HDR})
 include_directories(${BOOST_HDR})
-include_directories(${ANDROID_SYSROOT})
-
-set(PROTOBUF_PROTOC_EXECUTABLE /usr/bin/protoc)
+include_directories(${PROTOBUF_HDR})
+include_directories(${EIGEN_HDR})
 
 google_initialize_cartographer_project()
 #google_enable_testing()
@@ -69,30 +70,52 @@ file(GLOB_RECURSE ALL_PROTOS "*.proto")
 set(ALL_PROTO_SRCS)
 set(ALL_PROTO_HDRS)
 
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/cartographer/install)
+set(PROJECT_BINARY_DIR ${PROJECT_BINARY_DIR}/cartographer/install)
+
 foreach(ABS_FIL ${ALL_PROTOS})
   file(RELATIVE_PATH REL_FIL ${PROJECT_SOURCE_DIR} ${ABS_FIL})
+
   get_filename_component(DIR ${REL_FIL} DIRECTORY)
   get_filename_component(FIL_WE ${REL_FIL} NAME_WE)
-
+  
   list(APPEND ALL_PROTO_SRCS "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.cc")
   list(APPEND ALL_PROTO_HDRS "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.h")
-
-  add_custom_command(
+#message(STATUS "-----------------------")
+#message(STATUS ${ABS_FIL})
+#message(STATUS ${FIL_WE})
+#message(STATUS ${DIR})cartographer/sensor/proto/sensor.pb.h
+#message(STATUS ${PROJECT_SOURCE_DIR})
+#message(STATUS ${PROJECT_BINARY_DIR})
+#message(STATUS ${ALL_PROTO_SRCS})
+#message(STATUS ${DETECT_CHANGES_CMD})
+#message(STATUS "-----------------------")
+ 
+ add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.cc"
            "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.h"
     COMMAND  ${PROTOBUF_PROTOC_EXECUTABLE}
-    ARGS --cpp_out  ${PROJECT_BINARY_DIR} -I
-      ${PROJECT_SOURCE_DIR} ${ABS_FIL}
+    ARGS --cpp_out ${PROJECT_BINARY_DIR}  
+    -I ${PROJECT_SOURCE_DIR} ${ABS_FIL}
     DEPENDS ${ABS_FIL}
     COMMENT "Running C++ protocol buffer compiler on ${ABS_FIL}"
     VERBATIM
   )
+  
+ STRING(REGEX REPLACE "/" "_" NAME_DIR ${DIR})
+ 
+ add_custom_target(
+    ${NAME_DIR}_${FIL_WE}_generate_proto ALL
+    DEPENDS "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.cc"
+            "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.h"
+    )
 endforeach()
 
 set_source_files_properties(${ALL_PROTO_SRCS} ${ALL_PROTO_HDRS} PROPERTIES GENERATED TRUE)
 list(APPEND ALL_SRCS ${ALL_PROTO_SRCS} ${ALL_PROTO_HDRS})
 
 add_library(${PROJECT_NAME} ${ALL_SRCS})
+
 configure_file(
   ${PROJECT_SOURCE_DIR}/cartographer/common/config.h.cmake
   ${PROJECT_BINARY_DIR}/cartographer/common/config.h)
@@ -128,6 +151,7 @@ find_library(
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CERES_LIB})
 message(STATUS "-----------------------")
+message(STATUS ${CERES_HDR})
 message(STATUS ${CERES_LIB})
 message(STATUS "-----------------------")
 
@@ -142,6 +166,7 @@ find_library(
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC ${LUA_LIB})
 message(STATUS "-----------------------")
+message(STATUS ${LUA_HDR})
 message(STATUS ${LUA_LIB})
 message(STATUS "-----------------------")
 
@@ -155,22 +180,37 @@ find_library(
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC ${BOOST_LIB})
 message(STATUS "-----------------------")
+message(STATUS ${BOOST_HDR})
 message(STATUS ${BOOST_LIB})
 message(STATUS "-----------------------")
 
 # We expect find_package(Ceres) to have located these for us.
-target_link_libraries(${PROJECT_NAME} PUBLIC glog)
-target_link_libraries(${PROJECT_NAME} PUBLIC gflags)
+#target_link_libraries(${PROJECT_NAME} PUBLIC glog)
+#target_link_libraries(${PROJECT_NAME} PUBLIC gflags)
 
 #target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
 #  "${CAIRO_INCLUDE_DIRS}")
 #target_link_libraries(${PROJECT_NAME} PUBLIC ${CAIRO_LIBRARIES})
 
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-  ${PROTOBUF_INCLUDE_DIR})
+#target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
+#  ${PROTOBUF_INCLUDE_DIR})
 # TODO(hrapp): This should not explicitly list pthread and use
 # PROTOBUF_LIBRARIES, but that failed on first try.
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PROTOBUF_LIBRARY} pthread)
+#target_link_libraries(${PROJECT_NAME} PUBLIC ${PROTOBUF_LIBRARY} pthread)
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${PROTOBUF_HDR}")
+find_library(
+    PROTOBUF_LIB
+    NAMES protobuf
+    PATHS ${PROJECT_SOURCE_DIR}/../libs
+    PATH_SUFFIXES lib
+    NO_DEFAULT_PATH
+)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PROTOBUF_LIB})
+
+message(STATUS "-----------------------")
+message(STATUS ${PROTOBUF_HDR})
+message(STATUS ${PROTOBUF_LIB})
+message(STATUS "-----------------------")
 
 # Add the binary directory first, so that port.h is included after it has
 # been generated.
@@ -188,71 +228,4 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 set(TARGET_COMPILE_FLAGS "${TARGET_COMPILE_FLAGS} ${GOOG_CXX_FLAGS}")
 set_target_properties(${PROJECT_NAME} PROPERTIES
   COMPILE_FLAGS ${TARGET_COMPILE_FLAGS})
-
-install(
-  TARGETS ${PROJECT_NAME}
-  EXPORT CartographerExport
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-# Install source headers.
-file(GLOB_RECURSE hdrs "*.h")
-foreach(HDR ${hdrs})
-  file(RELATIVE_PATH REL_FIL ${PROJECT_SOURCE_DIR} ${HDR})
-  get_filename_component(INSTALL_DIR ${REL_FIL} DIRECTORY)
-  install(
-    FILES
-      ${HDR}
-    DESTINATION
-      include/${INSTALL_DIR}
-  )
-endforeach()
-
-# Install generated headers.
-file(GLOB_RECURSE hdrs "*.h.in")
-foreach(HDR ${hdrs})
-  file(RELATIVE_PATH REL_FIL ${PROJECT_SOURCE_DIR} ${HDR})
-  get_filename_component(DIR ${REL_FIL} DIRECTORY)
-  get_filename_component(FIL_WE ${REL_FIL} NAME_WE)
-  install(
-    FILES
-      ${PROJECT_BINARY_DIR}/${DIR}/${FILE_WE}
-    DESTINATION
-      include/${DIR}
-  )
-endforeach()
-
-# Install proto headers.
-foreach(HDR ${ALL_PROTO_HDRS})
-  file(RELATIVE_PATH REL_FIL ${PROJECT_BINARY_DIR} ${HDR})
-  get_filename_component(DIR ${REL_FIL} DIRECTORY)
-  install(
-    FILES
-      ${HDR}
-    DESTINATION
-      include/${DIR}
-  )
-endforeach()
-
-set(CARTOGRAPHER_CMAKE_DIR share/cartographer/cmake)
-include(CMakePackageConfigHelpers)
-configure_package_config_file(
-  cartographer-config.cmake.in
-  ${PROJECT_BINARY_DIR}/cmake/cartographer/cartographer-config.cmake
-  PATH_VARS CARTOGRAPHER_CMAKE_DIR
-  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/share/cartographer
-)
-
-install(
-  EXPORT CartographerExport
-  DESTINATION share/cartographer/cmake/
-  FILE CartographerTargets.cmake
-)
-
-install(
-  FILES ${PROJECT_BINARY_DIR}/cmake/cartographer/cartographer-config.cmake
-  DESTINATION share/cartographer/
-)
 
