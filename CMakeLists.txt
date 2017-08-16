@@ -23,7 +23,7 @@ set(PROTOBUF_HDR ${ANDROID_SYSROOT})
 set(CERES_HDR ${ANDROID_SYSROOT})
 #set(GLOG_HDR ${ANDROID_SYSROOT})
 set(PROTOBUF_PROTOC_EXECUTABLE /usr/local/bin/protoc) 
-link_directories(libs)
+link_directories(../libs)
 
 ## ************************************************************* GENERATING THE pb.c and the pb.h files 
 set(PROJECT_INSTALL_DIR ${PROJECT_BINARY_DIR}/install)
