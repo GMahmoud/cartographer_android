@@ -1,231 +1,137 @@
-# Copyright 2016 The Cartographer Authors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-cmake_minimum_required(VERSION 2.8.12)  # Ships with Ubuntu 14.04 (Trusty)
-
+cmake_minimum_required(VERSION 2.8.12)
+## ************************************************************* CMAKE TOOLCHAIN & PARAMS
+set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_SYSTEM_NAME Android)
-set(CMAKE_ANDROID_ARM_MODE ON)
+#set(CMAKE_ANDROID_ARM_MODE ON)
+#set(ANDROID_TOOLCHAIN /opt/toolchain-x86)
 set(ANDROID_TOOLCHAIN /opt/toolchain)
 set(ANDROID_SYSROOT ${ANDROID_TOOLCHAIN}/sysroot/usr/include)
 set(CMAKE_ANDROID_STANDALONE_TOOLCHAIN gcc)
-set(CMAKE_C_COMPILER ${ANDROID_TOOLCHAIN}/bin/arm-linux-androideabi-gcc)
+#set(CMAKE_C_COMPILER ${ANDROID_TOOLCHAIN}/bin/i686-linux-android-gcc)
+#set(CMAKE_CXX_COMPILER ${ANDROID_TOOLCHAIN}/bin/i686-linux-android-g++)
 set(CMAKE_CXX_COMPILER ${ANDROID_TOOLCHAIN}/bin/arm-linux-androideabi-g++)
+set(CMAKE_C_COMPILER ${ANDROID_TOOLCHAIN}/bin/arm-linux-androideabi-gcc)
+#set (CMAKE_CXX_FLAGS "--std=gnu++11 ${CMAKE_CXX_FLAGS}")
 
-project(cartographer)
 
-set(CARTOGRAPHER_MAJOR_VERSION 1)
-set(CARTOGRAPHER_MINOR_VERSION 0)
-set(CARTOGRAPHER_PATCH_VERSION 0)
-set(CARTOGRAPHER_VERSION ${CARTOGRAPHER_MAJOR_VERSION}.${CARTOGRAPHER_MINOR_VERSION}.${CARTOGRAPHER_PATCH_VERSION})
-set(CARTOGRAPHER_SOVERSION ${CARTOGRAPHER_MAJOR_VERSION}.${CARTOGRAPHER_MINOR_VERSION})
-
-set(BOOST_HDR ${ANDROID_SYSROOT}/boost-1_53)
+project(test-carto-generic)
+## ************************************************************* INCLUDING EXTERNAL HDRS & PROTOC EXE
 set(LUA_HDR ${ANDROID_SYSROOT}/lua-5.2.4)
 set(EIGEN_HDR ${ANDROID_SYSROOT}/eigen3)
+set(BOOST_HDR ${ANDROID_SYSROOT}/boost-1_53)
 set(PROTOBUF_HDR ${ANDROID_SYSROOT})
 set(CERES_HDR ${ANDROID_SYSROOT})
-set(PROTOBUF_PROTOC_EXECUTABLE /home/maghob/Downloads/protobuf-2.6.0/src/protoc) 
+#set(GLOG_HDR ${ANDROID_SYSROOT})
+set(PROTOBUF_PROTOC_EXECUTABLE /usr/local/bin/protoc) 
+link_directories(libs)
 
-include("${PROJECT_SOURCE_DIR}/cmake/functions.cmake")
-message(STATUS "-----------------------")
-message(STATUS ${PROJECT_SOURCE_DIR}/cmake/functions.cmake)
-message(STATUS "-----------------------")
-
-include_directories(${LUA_HDR})
-include_directories(${BOOST_HDR})
-include_directories(${PROTOBUF_HDR})
-include_directories(${EIGEN_HDR})
-
-google_initialize_cartographer_project()
-#google_enable_testing()
-
-# Install catkin package.xml
-install(FILES package.xml DESTINATION share/cartographer)
-
-set(CARTOGRAPHER_CONFIGURATION_FILES_DIRECTORY ${CMAKE_INSTALL_PREFIX}/share/cartographer/configuration_files
-  CACHE PATH ".lua configuration files directory")
-
-install(DIRECTORY configuration_files DESTINATION share/cartographer/)
-
-install(DIRECTORY cmake DESTINATION share/cartographer/)
-
-file(GLOB_RECURSE ALL_SRCS "*.cc" "*.h")
-file(GLOB_RECURSE ALL_TESTS "*_test.cc")
-file(GLOB_RECURSE ALL_EXECUTABLES "*_main.cc")
-list(REMOVE_ITEM ALL_SRCS ${ALL_TESTS})
-list(REMOVE_ITEM ALL_SRCS ${ALL_EXECUTABLES})
-
+## ************************************************************* GENERATING THE pb.c and the pb.h files 
+set(PROJECT_INSTALL_DIR ${PROJECT_BINARY_DIR}/install)
+set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+file(MAKE_DIRECTORY ${PROJECT_INSTALL_DIR})
+set(CARTO_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
 file(GLOB_RECURSE ALL_PROTOS "*.proto")
 set(ALL_PROTO_SRCS)
 set(ALL_PROTO_HDRS)
 
-file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/cartographer/install)
-set(PROJECT_BINARY_DIR ${PROJECT_BINARY_DIR}/cartographer/install)
-
 foreach(ABS_FIL ${ALL_PROTOS})
-  file(RELATIVE_PATH REL_FIL ${PROJECT_SOURCE_DIR} ${ABS_FIL})
+  file(RELATIVE_PATH REL_FIL ${CARTO_SOURCE_DIR} ${ABS_FIL})
 
   get_filename_component(DIR ${REL_FIL} DIRECTORY)
   get_filename_component(FIL_WE ${REL_FIL} NAME_WE)
   
-  list(APPEND ALL_PROTO_SRCS "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.cc")
-  list(APPEND ALL_PROTO_HDRS "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.h")
-#message(STATUS "-----------------------")
-#message(STATUS ${ABS_FIL})
-#message(STATUS ${FIL_WE})
-#message(STATUS ${DIR})cartographer/sensor/proto/sensor.pb.h
-#message(STATUS ${PROJECT_SOURCE_DIR})
-#message(STATUS ${PROJECT_BINARY_DIR})
-#message(STATUS ${ALL_PROTO_SRCS})
-#message(STATUS ${DETECT_CHANGES_CMD})
-#message(STATUS "-----------------------")
- 
- add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.cc"
-           "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.h"
+  list(APPEND ALL_PROTO_SRCS "${PROJECT_INSTALL_DIR}/${DIR}/${FIL_WE}.pb.cc")
+  list(APPEND ALL_PROTO_HDRS "${PROJECT_INSTALL_DIR}/${DIR}/${FIL_WE}.pb.h")
+  	
+  add_custom_command(
+    OUTPUT "${PROJECT_INSTALL_DIR}/${DIR}/${FIL_WE}.pb.cc"
+           "${PROJECT_INSTALL_DIR}/${DIR}/${FIL_WE}.pb.h"
     COMMAND  ${PROTOBUF_PROTOC_EXECUTABLE}
-    ARGS --cpp_out ${PROJECT_BINARY_DIR}  
-    -I ${PROJECT_SOURCE_DIR} ${ABS_FIL}
+    ARGS --cpp_out ${PROJECT_INSTALL_DIR}  
+    -I ${CARTO_SOURCE_DIR} ${ABS_FIL}
     DEPENDS ${ABS_FIL}
     COMMENT "Running C++ protocol buffer compiler on ${ABS_FIL}"
     VERBATIM
   )
   
  STRING(REGEX REPLACE "/" "_" NAME_DIR ${DIR})
- 
+  
  add_custom_target(
     ${NAME_DIR}_${FIL_WE}_generate_proto ALL
-    DEPENDS "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.cc"
-            "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.h"
+    DEPENDS "${PROJECT_INSTALL_DIR}/${DIR}/${FIL_WE}.pb.cc"
+            "${PROJECT_INSTALL_DIR}/${DIR}/${FIL_WE}.pb.h"
     )
 endforeach()
 
 set_source_files_properties(${ALL_PROTO_SRCS} ${ALL_PROTO_HDRS} PROPERTIES GENERATED TRUE)
-list(APPEND ALL_SRCS ${ALL_PROTO_SRCS} ${ALL_PROTO_HDRS})
+set(ALL_PROTO_GEN ${ALL_PROTO_SRCS} ${ALL_PROTO_HDRS})
 
-add_library(${PROJECT_NAME} ${ALL_SRCS})
+## ************************************************************* COPYING ALL HEADERS TO THE INCLUDE FOLDER 
+file(GLOB_RECURSE ALL_CARTO_HDRS "src/cartographer/*.h")
+file(GLOB_RECURSE ALL_CARTO_GEN_MSGS "src/cartographer_generic_msgs/*.h")
+file(GLOB_RECURSE ALL_CARTO_GEN_HDRS "src/cartographer_generic/*.h")
+file(GLOB_RECURSE ALL_CARTO_SRCS "src/cartographer/*.cc")
+file(GLOB_RECURSE ALL_CARTO_TESTS "src/cartographer/*_test.cc")
+file(GLOB_RECURSE ALL_CARTO_EXES "src/cartographer/*_main.cc")
+file(GLOB_RECURSE ALL_CARTO_PROB "src/cartographer/proto_stream.cc")
+list(REMOVE_ITEM ALL_CARTO_SRCS ${ALL_CARTO_TESTS})
+list(REMOVE_ITEM ALL_CARTO_SRCS ${ALL_CARTO_EXES})
+list(REMOVE_ITEM ALL_CARTO_SRCS ${ALL_CARTO_PROB})
+set(ALL_CARTO_HDRS ${ALL_CARTO_HDRS} ${ALL_CARTO_GEN_MSGS} ${ALL_CARTO_GEN_HDRS})
+
+foreach(ABS_FIL ${ALL_CARTO_HDRS})
+  file(RELATIVE_PATH REL_FIL ${CARTO_SOURCE_DIR} ${ABS_FIL})
+  get_filename_component(DIR ${REL_FIL} DIRECTORY)
+  get_filename_component(FIL_WE ${REL_FIL} NAME_WE)
+  file(COPY ${ABS_FIL} DESTINATION ${PROJECT_INCLUDE_DIR}/${DIR})
+endforeach()
 
 configure_file(
-  ${PROJECT_SOURCE_DIR}/cartographer/common/config.h.cmake
-  ${PROJECT_BINARY_DIR}/cartographer/common/config.h)
+  ${CARTO_SOURCE_DIR}/cartographer/common/config.h.cmake
+  ${PROJECT_INCLUDE_DIR}/cartographer/common/config.h )
+  
+## ************************************************************* INCLUDING ALL THE HEADERS 
+include_directories(build/install)
+include_directories(include)
+## ************************************************************* 
 
-#google_binary(cartographer_autogenerate_ground_truth
-#  SRCS
-#    cartographer/ground_truth/autogenerate_ground_truth_main.cc
-#)
+# TODO Nous devons recompiler les lib statiques glog et protobuf avec ces nouvelles modifications
+file(GLOB_RECURSE ALL_CARTO_GEN_SRCS  "/opt/toolchain/sysroot/usr/include/glog/*"
+                             "${PROTOBUF_HDR}/google/protobuf/message_lite*"
+                             "${PROTOBUF_HDR}/google/protobuf/message.*"
+                      
+                             "src/cartographer_generic/node_main*" 
+			                 "src/cartographer_generic/node_constants.*"
+							 "src/cartographer_generic/sensor_bridge*"
+							 "src/cartographer_generic/msg_conv*"
+                             "src/cartographer_generic/tf_bridge*"
+#                            "src/cartographer_generic/test*"                         
+                             "src/cartographer_generic/node_options.*"
+                             "src/cartographer_generic/trajectory_options.*"			
+							 "src/cartographer_generic/map_builder_bridge.*"  
+							 "src/cartographer_generic/node.*"                                                         
+                        																 ) 
 
-#google_binary(cartographer_compute_relations_metrics
-#  SRCS
-#    cartographer/ground_truth/compute_relations_metrics_main.cc
-#)
 
-#foreach(ABS_FIL ${ALL_TESTS})
-#  file(RELATIVE_PATH REL_FIL ${PROJECT_SOURCE_DIR} ${ABS_FIL})
-#  get_filename_component(DIR ${REL_FIL} DIRECTORY)
-#  get_filename_component(FIL_WE ${REL_FIL} NAME_WE)
-  # Replace slashes as required for CMP0037.
-#  string(REPLACE "/" "." TEST_TARGET_NAME "${DIR}/${FIL_WE}")
-#  google_test("${TEST_TARGET_NAME}" ${ABS_FIL})
-#endforeach()
+#message(STATUS "-----------------------")
+#message(STATUS ${ALL_TEST})
+#message(STATUS ${ALL_CARTO_SRCS})
+#message(STATUS "-----------------------")
+
+add_library(${PROJECT_NAME} SHARED ${ALL_CARTO_GEN_SRCS} ${ALL_CARTO_SRCS} ${ALL_PROTO_GEN}) 
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${EIGEN_HDR}")
-
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${CERES_HDR}")
-find_library(
-    CERES_LIB
-    NAMES ceres
-    PATHS ${PROJECT_SOURCE_DIR}/../libs
-    PATH_SUFFIXES lib
-    NO_DEFAULT_PATH
-)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${CERES_LIB})
-message(STATUS "-----------------------")
-message(STATUS ${CERES_HDR})
-message(STATUS ${CERES_LIB})
-message(STATUS "-----------------------")
-
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${LUA_HDR}")
-#target_link_libraries(${PROJECT_NAME} PUBLIC llua)
-find_library(
-    LUA_LIB
-    NAMES lua
-    PATHS ${PROJECT_SOURCE_DIR}/../libs
-    PATH_SUFFIXES lib
-    NO_DEFAULT_PATH
-)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${LUA_LIB})
-message(STATUS "-----------------------")
-message(STATUS ${LUA_HDR})
-message(STATUS ${LUA_LIB})
-message(STATUS "-----------------------")
-
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${BOOST_HDR}")
-find_library(
-    BOOST_LIB
-    NAMES boost_iostreams-gcc-mt-1_53
-    PATHS ${PROJECT_SOURCE_DIR}/../libs
-    PATH_SUFFIXES lib
-    NO_DEFAULT_PATH
-)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${BOOST_LIB})
-message(STATUS "-----------------------")
-message(STATUS ${BOOST_HDR})
-message(STATUS ${BOOST_LIB})
-message(STATUS "-----------------------")
-
-# We expect find_package(Ceres) to have located these for us.
-#target_link_libraries(${PROJECT_NAME} PUBLIC glog)
-#target_link_libraries(${PROJECT_NAME} PUBLIC gflags)
-
-#target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-#  "${CAIRO_INCLUDE_DIRS}")
-#target_link_libraries(${PROJECT_NAME} PUBLIC ${CAIRO_LIBRARIES})
-
-#target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-#  ${PROTOBUF_INCLUDE_DIR})
-# TODO(hrapp): This should not explicitly list pthread and use
-# PROTOBUF_LIBRARIES, but that failed on first try.
-#target_link_libraries(${PROJECT_NAME} PUBLIC ${PROTOBUF_LIBRARY} pthread)
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${PROTOBUF_HDR}")
-find_library(
-    PROTOBUF_LIB
-    NAMES protobuf
-    PATHS ${PROJECT_SOURCE_DIR}/../libs
-    PATH_SUFFIXES lib
-    NO_DEFAULT_PATH
-)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PROTOBUF_LIB})
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${GLOG_HDR}")
 
-message(STATUS "-----------------------")
-message(STATUS ${PROTOBUF_HDR})
-message(STATUS ${PROTOBUF_LIB})
-message(STATUS "-----------------------")
+target_link_libraries(${PROJECT_NAME} lua)
+target_link_libraries(${PROJECT_NAME} protobuf)
+target_link_libraries(${PROJECT_NAME} boost)
+target_link_libraries(${PROJECT_NAME} ceres)
+target_link_libraries(${PROJECT_NAME} log)
 
-# Add the binary directory first, so that port.h is included after it has
-# been generated.
-target_include_directories(${PROJECT_NAME} PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:include>
-)
 
-# TODO(damonkohler): Create a testing library.
-# target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE
-#  "${GMOCK_INCLUDE_DIRS}")
-# target_link_libraries(${PROJECT_NAME} PUBLIC ${GMOCK_LIBRARY})
-
-set(TARGET_COMPILE_FLAGS "${TARGET_COMPILE_FLAGS} ${GOOG_CXX_FLAGS}")
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  COMPILE_FLAGS ${TARGET_COMPILE_FLAGS})
 

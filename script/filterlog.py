@@ -39,7 +39,6 @@ def main(argv):
         print ('Warning: the output file is named output.txt')  
         #sys.exit()
         outp = 'output.txt'
-    
     f = open(inp)
     f1 = open(outp, force)
     
@@ -55,6 +54,8 @@ def main(argv):
     	doIHaveToCopyTheLine=False
     	if tag in line:
         	doIHaveToCopyTheLine=True
+        #if ('I native' in line) or ('W native' in line) or ('E native' in line) or ('F native' in line):
+        	#doIHaveToCopyTheLine=True
     	#print (doIHaveToCopyTheLine)
     	if doIHaveToCopyTheLine:
         	f1.write(line)
