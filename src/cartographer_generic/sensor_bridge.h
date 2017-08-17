@@ -41,18 +41,18 @@ public:
 	SensorBridge& operator=(const SensorBridge&) = delete;
 
 	void HandleOdometryMessage(const string& sensor_id,
-			 ::cartographer_generic_msgs::Odometry::ConstPtr& msg);
+			 ::cartographer_generic_msgs::Odometry::Ptr& msg);
 //	std::unique_ptr<::cartographer::sensor::ImuData> ToImuData(
-//			const sensor_msgs::Imu::ConstPtr& msg);
+//			const sensor_msgs::Imu::Ptr& msg);
 	//	void HandleImuMessage(const string& sensor_id,
-	//			const sensor_msgs::Imu::ConstPtr& msg);
+	//			const sensor_msgs::Imu::Ptr& msg);
 	void HandleLaserScanMessage(const string& sensor_id,
-			::cartographer_generic_msgs::LaserScan::ConstPtr& msg);
+			::cartographer_generic_msgs::LaserScan::Ptr& msg);
 	//  void HandleMultiEchoLaserScanMessage(
 	//      const string& sensor_id,
-	//      const sensor_msgs::MultiEchoLaserScan::ConstPtr& msg);
+	//      const sensor_msgs::MultiEchoLaserScan::Ptr& msg);
 	//  void HandlePointCloud2Message(const string& sensor_id,
-	//                                const sensor_msgs::PointCloud2::ConstPtr& msg);
+	//                                const sensor_msgs::PointCloud2::Ptr& msg);
 
 	const TfBridge& tf_bridge() const;
 

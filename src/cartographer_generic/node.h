@@ -52,8 +52,8 @@ public:
 	int StartTrajectory(const TrajectoryOptions& options);
 
 	//Callbacks
-	void LaserScanCallback (::cartographer_generic_msgs::LaserScan::ConstPtr& msg, const int trajectory_id );
-	void OdometryCallback(::cartographer_generic_msgs::Odometry::ConstPtr& msg, const int trajectory_id );
+	void LaserScanCallback (::cartographer_generic_msgs::LaserScan::Ptr& msg, const int trajectory_id );
+	void OdometryCallback(::cartographer_generic_msgs::Odometry::Ptr& msg, const int trajectory_id );
 
 	// Loads a persisted state to use as a map.
 	//void LoadMap(const std::string& map_filename);

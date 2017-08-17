@@ -53,10 +53,8 @@ Node* _Run() {
 	NodeOptions node_options;
 	TrajectoryOptions trajectory_options;
 	std::tie(node_options, trajectory_options) = LoadOptions();
-	LOG(INFO) << "HERE1";
-	//Node node(node_options/*, &tf_buffer*/);
+
 	Node* node = new Node(node_options/*, &tf_buffer*/);
-	LOG(INFO) << "HERE2";
 	//TODO If we want to add a primary map
 	//	if (!FLAGS_map_filename.empty()) {
 	//		node.LoadMap(FLAGS_map_filename);
@@ -75,26 +73,26 @@ int _GetTrajectoryId (){
 
 void _LaserScanCallback(Node* node, float* ranges) {
 	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::LaserScan::ConstPtr) Begins" ;
-        ::cartographer_generic_msgs::LaserScan::Ptr msg;
+	::cartographer_generic_msgs::LaserScan::Ptr  msg(new ::cartographer_generic_msgs::LaserScan());
 
 	msg->ranges.reserve(360);
-        for(int i=0; i<360; i++)
-	    msg->ranges.at(i) = ranges[i];
+	for(int i=0; i<360; i++)
+		msg->ranges.push_back(ranges[i]) ;
 
-        LOG(INFO) << "ranges size = " << msg->ranges.size();
-        LOG(INFO) << "range(size/2) = " << msg->ranges.at(floor(msg->ranges.size()/2));
+	LOG(INFO) << "ranges size = " << msg->ranges.size();
+	LOG(INFO) << "range(size/2) = " << msg->ranges.at(floor(msg->ranges.size()/2));
 
-        msg->angle_min=-1.57079637051;
-        msg->angle_max=1.57079637051;
-        msg->angle_increment=0.00872664619237;
-        msg->scan_time=0.0333333350718;
-        msg->range_min=0.449999988079;
-        msg->range_max=6.0;
-	//node->LaserScanCallback(msg, trajectory_id);
+	msg->angle_min=-1.57079637051;
+	msg->angle_max=1.57079637051;
+	msg->angle_increment=0.00872664619237;
+	msg->scan_time=0.0333333350718;
+	msg->range_min=0.449999988079;
+	msg->range_max=6.0;
+	node->LaserScanCallback(msg, trajectory_id);
 	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::LaserScan::ConstPtr) Ends" ;
 }
 
-void _OdometryCallback(Node* node, ::cartographer_generic_msgs::Odometry::ConstPtr& msg) {
+void _OdometryCallback(Node* node, ::cartographer_generic_msgs::Odometry::Ptr& msg) {
 	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::Odometry::ConstPtr) Begins" ;
 	node->OdometryCallback(msg, trajectory_id);
 	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::Odometry::ConstPtr) Ends" ;
