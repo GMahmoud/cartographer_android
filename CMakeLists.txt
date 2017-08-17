@@ -1,18 +1,13 @@
 cmake_minimum_required(VERSION 2.8.12)
 ## ************************************************************* CMAKE TOOLCHAIN & PARAMS
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 11) #with cmake 3.1 only, lesser version should use : set(CMAKE_CXX_FLAGS "--std=gnu++11 ${CMAKE_CXX_FLAGS}")
 set(CMAKE_SYSTEM_NAME Android)
 #set(CMAKE_ANDROID_ARM_MODE ON)
-#set(ANDROID_TOOLCHAIN /opt/toolchain-x86)
 set(ANDROID_TOOLCHAIN /opt/toolchain)
 set(ANDROID_SYSROOT ${ANDROID_TOOLCHAIN}/sysroot/usr/include)
 set(CMAKE_ANDROID_STANDALONE_TOOLCHAIN gcc)
-#set(CMAKE_C_COMPILER ${ANDROID_TOOLCHAIN}/bin/i686-linux-android-gcc)
-#set(CMAKE_CXX_COMPILER ${ANDROID_TOOLCHAIN}/bin/i686-linux-android-g++)
 set(CMAKE_CXX_COMPILER ${ANDROID_TOOLCHAIN}/bin/arm-linux-androideabi-g++)
 set(CMAKE_C_COMPILER ${ANDROID_TOOLCHAIN}/bin/arm-linux-androideabi-gcc)
-#set (CMAKE_CXX_FLAGS "--std=gnu++11 ${CMAKE_CXX_FLAGS}")
-
 
 project(test-carto-generic)
 ## ************************************************************* INCLUDING EXTERNAL HDRS & PROTOC EXE
@@ -21,7 +16,7 @@ set(EIGEN_HDR ${ANDROID_SYSROOT}/eigen3)
 set(BOOST_HDR ${ANDROID_SYSROOT}/boost-1_53)
 set(PROTOBUF_HDR ${ANDROID_SYSROOT})
 set(CERES_HDR ${ANDROID_SYSROOT})
-#set(GLOG_HDR ${ANDROID_SYSROOT})
+set(GLOG_HDR ${ANDROID_SYSROOT})
 set(PROTOBUF_PROTOC_EXECUTABLE /usr/local/bin/protoc) 
 link_directories(../libs)
 
@@ -113,11 +108,6 @@ file(GLOB_RECURSE ALL_CARTO_GEN_SRCS  "/opt/toolchain/sysroot/usr/include/glog/*
                         																 ) 
 
 
-#message(STATUS "-----------------------")
-#message(STATUS ${ALL_TEST})
-#message(STATUS ${ALL_CARTO_SRCS})
-#message(STATUS "-----------------------")
-
 add_library(${PROJECT_NAME} SHARED ${ALL_CARTO_GEN_SRCS} ${ALL_CARTO_SRCS} ${ALL_PROTO_GEN}) 
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${EIGEN_HDR}")
@@ -132,6 +122,3 @@ target_link_libraries(${PROJECT_NAME} protobuf)
 target_link_libraries(${PROJECT_NAME} boost)
 target_link_libraries(${PROJECT_NAME} ceres)
 target_link_libraries(${PROJECT_NAME} log)
-
-
-
