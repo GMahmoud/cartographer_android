@@ -77,17 +77,19 @@ void _LaserScanCallback(Node* node, float* ranges) {
 	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::LaserScan::ConstPtr) Begins" ;
         ::cartographer_generic_msgs::LaserScan::Ptr msg;
 
-        msg->ranges=ranges;
+	msg->ranges.reserve(360);
+        for(int i=0; i<360; i++)
+	    msg->ranges.at(i) = ranges[i];
 
         LOG(INFO) << "ranges size = " << msg->ranges.size();
-        LOG(INFO) << "range(size/2) = " << msg->ranges.at(floor(msg->ranges.size()/2);
+        LOG(INFO) << "range(size/2) = " << msg->ranges.at(floor(msg->ranges.size()/2));
 
-        msg->angle_min=-1.57079637051
-        msg->angle_max=1.57079637051
-        msg->angle_increment=0.00872664619237
-        msg->scan_time=0.0333333350718
-        msg->range_min=0.449999988079
-        msg->range_max=6.0
+        msg->angle_min=-1.57079637051;
+        msg->angle_max=1.57079637051;
+        msg->angle_increment=0.00872664619237;
+        msg->scan_time=0.0333333350718;
+        msg->range_min=0.449999988079;
+        msg->range_max=6.0;
 	//node->LaserScanCallback(msg, trajectory_id);
 	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::LaserScan::ConstPtr) Ends" ;
 }
