@@ -34,6 +34,7 @@ constexpr char kSubmapListTopic[] = "submap_list";
 constexpr char kTrajectoryNodeListTopic[] = "trajectory_node_list";
 constexpr char kConstraintListTopic[] = "constraint_list";
 constexpr double kConstraintPublishPeriodSec = 0.5;
+constexpr char kSubmapQueryServiceName[] = "submap_query";
 
 constexpr int kInfiniteSubscriberQueueSize = 0;
 constexpr int kLatestOnlyPublisherQueueSize = 1;

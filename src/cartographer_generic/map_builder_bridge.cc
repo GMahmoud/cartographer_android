@@ -47,7 +47,7 @@ int MapBuilderBridge::AddTrajectory(
           map_builder_.GetTrajectoryBuilder(trajectory_id));
   auto emplace_result =
       trajectory_options_.emplace(trajectory_id, trajectory_options);
-  //CHECK(emplace_result.second == true);
+  CHECK(emplace_result.second == true);
   return trajectory_id;
 }
 
@@ -57,6 +57,55 @@ void MapBuilderBridge::FinishTrajectory(const int trajectory_id) {
   sensor_bridges_.erase(trajectory_id);
 }
 
+cartographer_generic_msgs::SubmapList MapBuilderBridge::GetSubmapList() {
+  cartographer_generic_msgs::SubmapList submap_list;
+  //TODO
+  //submap_list.header.stamp = ::ros::Time::now();
+  submap_list.header.frame_id = node_options_.map_frame;
+  const auto all_submap_data =
+      map_builder_.sparse_pose_graph()->GetAllSubmapData();
+  for (size_t trajectory_id = 0; trajectory_id < all_submap_data.size();
+       ++trajectory_id) {
+    for (size_t submap_index = 0;
+         submap_index < all_submap_data[trajectory_id].size(); ++submap_index) {
+      const auto& submap_data = all_submap_data[trajectory_id][submap_index];
+      if (submap_data.submap == nullptr) {
+        continue;
+      }
+      cartographer_generic_msgs::SubmapEntry submap_entry;
+      submap_entry.trajectory_id = trajectory_id;
+      submap_entry.submap_index = submap_index;
+      submap_entry.submap_version = submap_data.submap->num_range_data();
+      submap_entry.pose = ToGeometryMsgPose(submap_data.pose);
+      submap_list.submap.push_back(submap_entry);
+    }
+  }
+  return submap_list;
+}
+
+bool MapBuilderBridge::HandleSubmapQuery(
+cartographer_generic_msgs::SubmapQuery::Request& request,
+cartographer_generic_msgs::SubmapQuery::Response& response) {
+  cartographer::mapping::proto::SubmapQuery::Response response_proto;
+  const std::string error = map_builder_.SubmapToProto(
+      cartographer::mapping::SubmapId{request.trajectory_id,
+                                      request.submap_index},
+      &response_proto);
+  if (!error.empty()) {
+    LOG(ERROR) << error;
+    return false;
+  }
+
+  response.submap_version = response_proto.submap_version();
+  response.cells.insert(response.cells.begin(), response_proto.cells().begin(),
+                        response_proto.cells().end());
+  response.width = response_proto.width();
+  response.height = response_proto.height();
+  response.resolution = response_proto.resolution();
+  response.slice_pose = ToGeometryMsgPose(
+      cartographer::transform::ToRigid3(response_proto.slice_pose()));
+  return true;
+}
 
 SensorBridge* MapBuilderBridge::sensor_bridge(const int trajectory_id) {
   return sensor_bridges_.at(trajectory_id).get();

@@ -30,7 +30,8 @@
 #include "cartographer_generic/trajectory_options.h"
 #include "cartographer_generic_msgs/SensorTopics.h"
 #include "cartographer_generic/map_builder_bridge.h"
-//#include "cartographer_generic_msgs/SubmapList.h"
+#include "cartographer_generic_msgs/SubmapList.h"
+#include "cartographer_generic_msgs/SubmapQuery.h"
 
 
 
@@ -59,6 +60,11 @@ public:
 	//void LoadMap(const std::string& map_filename);
 
 	MapBuilderBridge* map_builder_bridge();
+	::cartographer_generic_msgs::SubmapList GetSubmapList();
+	bool HandleSubmapQuery(
+	    ::cartographer_generic_msgs::SubmapQuery::Request& request,
+	    ::cartographer_generic_msgs::SubmapQuery::Response& response);
+
 
 private:
 	// Returns the set of topic names we want to subscribe to.

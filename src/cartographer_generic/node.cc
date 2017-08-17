@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "node.h"
+#include "cartographer_generic/node.h"
 #include <chrono>
 #include <string>
 #include <vector>
@@ -49,31 +49,31 @@ Node::Node(const NodeOptions& node_options/*, tf2_ros::Buffer* const tf_buffer*/
 	carto::common::MutexLocker lock(&mutex_);
 
 	// TODO Outputs
-	//  submap_list_publisher_ =
-	//      node_handle_.advertise<::cartographer_generic_msgs::SubmapList>(
-	//          kSubmapListTopic, kLatestOnlyPublisherQueueSize);
-	//  trajectory_node_list_publisher_ =
-	//      node_handle_.advertise<::visualization_msgs::MarkerArray>(
-	//          kTrajectoryNodeListTopic, kLatestOnlyPublisherQueueSize);
-	//  constraint_list_publisher_ =
-	//      node_handle_.advertise<::visualization_msgs::MarkerArray>(
-	//          kConstraintListTopic, kLatestOnlyPublisherQueueSize);
-	//  scan_matched_point_cloud_publisher_ =
-	//      node_handle_.advertise<sensor_msgs::PointCloud2>(
-	//          kScanMatchedPointCloudTopic, kLatestOnlyPublisherQueueSize);
-	//
-	//  wall_timers_.push_back(node_handle_.createWallTimer(
-	//      ::ros::WallDuration(node_options_.submap_publish_period_sec),
-	//      &Node::PublishSubmapList, this));
-	//  wall_timers_.push_back(node_handle_.createWallTimer(
-	//      ::ros::WallDuration(node_options_.pose_publish_period_sec),
-	//      &Node::PublishTrajectoryStates, this));
-	//  wall_timers_.push_back(node_handle_.createWallTimer(
-	//      ::ros::WallDuration(node_options_.trajectory_publish_period_sec),
-	//      &Node::PublishTrajectoryNodeList, this));
-	//  wall_timers_.push_back(node_handle_.createWallTimer(
-	//      ::ros::WallDuration(kConstraintPublishPeriodSec),
-	//      &Node::PublishConstraintList, this));
+//	  submap_list_publisher_ =
+//	      node_handle_.advertise<::cartographer_generic_msgs::SubmapList>(
+//	          kSubmapListTopic, kLatestOnlyPublisherQueueSize);
+//	  trajectory_node_list_publisher_ =
+//	      node_handle_.advertise<::visualization_msgs::MarkerArray>(
+//	          kTrajectoryNodeListTopic, kLatestOnlyPublisherQueueSize);
+//	  constraint_list_publisher_ =
+//	      node_handle_.advertise<::visualization_msgs::MarkerArray>(
+//	          kConstraintListTopic, kLatestOnlyPublisherQueueSize);
+//	  scan_matched_point_cloud_publisher_ =
+//	      node_handle_.advertise<sensor_msgs::PointCloud2>(
+//	          kScanMatchedPointCloudTopic, kLatestOnlyPublisherQueueSize);
+
+//	  wall_timers_.push_back(node_handle_.createWallTimer(
+//	      ::ros::WallDuration(node_options_.submap_publish_period_sec),
+//	      &Node::PublishSubmapList, this));
+//	  wall_timers_.push_back(node_handle_.createWallTimer(
+//	      ::ros::WallDuration(node_options_.pose_publish_period_sec),
+//	      &Node::PublishTrajectoryStates, this));
+//	  wall_timers_.push_back(node_handle_.createWallTimer(
+//	      ::ros::WallDuration(node_options_.trajectory_publish_period_sec),
+//	      &Node::PublishTrajectoryNodeList, this));
+//	  wall_timers_.push_back(node_handle_.createWallTimer(
+//	      ::ros::WallDuration(kConstraintPublishPeriodSec),
+//	      &Node::PublishConstraintList, this));
 
 }
 
@@ -81,6 +81,20 @@ Node::~Node() {}
 
 
 MapBuilderBridge* Node::map_builder_bridge() { return &map_builder_bridge_; }
+
+::cartographer_generic_msgs::SubmapList Node::GetSubmapList() {
+	carto::common::MutexLocker lock(&mutex_);
+	::cartographer_generic_msgs::SubmapList SubmapList = map_builder_bridge_.GetSubmapList();
+	return SubmapList;
+}
+
+
+bool Node::HandleSubmapQuery(
+    ::cartographer_generic_msgs::SubmapQuery::Request& request,
+    ::cartographer_generic_msgs::SubmapQuery::Response& response) {
+  carto::common::MutexLocker lock(&mutex_);
+  return map_builder_bridge_.HandleSubmapQuery(request, response);
+}
 
 //TODO OUTPUTS
 //void Node::PublishSubmapList(const ::ros::WallTimerEvent& unused_timer_event) {
