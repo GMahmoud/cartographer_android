@@ -93,6 +93,7 @@ class BlockingQueue {
   template <typename R>
   const R* Peek() {
     MutexLocker lock(&mutex_);
+    LOG(INFO) << "deque_.empty() = " << deque_.empty() ;
     if (deque_.empty()) {
       return nullptr;
     }

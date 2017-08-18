@@ -530,6 +530,7 @@ SparsePoseGraph::GetAllSubmapData() {
   common::MutexLocker locker(&mutex_);
   std::vector<std::vector<mapping::SparsePoseGraph::SubmapData>>
       all_submap_data(submap_data_.num_trajectories());
+  //LOG(INFO) << "submap_data_.num_trajectories() = " << submap_data_.num_trajectories();
   for (int trajectory_id = 0; trajectory_id < submap_data_.num_trajectories();
        ++trajectory_id) {
     all_submap_data[trajectory_id].reserve(

@@ -70,6 +70,7 @@ class TrajectoryBuilder {
     AddSensorData(sensor_id,
                   common::make_unique<sensor::Data>(
                       time, sensor::Data::Rangefinder{origin, ranges}));
+
   }
 
   void AddImuData(const string& sensor_id, common::Time time,

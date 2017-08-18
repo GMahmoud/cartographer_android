@@ -90,12 +90,12 @@ float GetFirstEcho(float range) { return range; }
 template <typename LaserMessageType>
 PointCloudWithIntensities LaserScanToPointCloudWithIntensities(
     const LaserMessageType& msg) {
-  //CHECK_GE(msg.range_min, 0.f);
-  //CHECK_GE(msg.range_max, msg.range_min);
+  CHECK_GE(msg.range_min, 0.f);
+  CHECK_GE(msg.range_max, msg.range_min);
   if (msg.angle_increment > 0.f) {
-    //CHECK_GT(msg.angle_max, msg.angle_min);
+    CHECK_GT(msg.angle_max, msg.angle_min);
   } else {
-    //CHECK_GT(msg.angle_min, msg.angle_max);
+    CHECK_GT(msg.angle_min, msg.angle_max);
   }
   PointCloudWithIntensities point_cloud;
   float angle = msg.angle_min;

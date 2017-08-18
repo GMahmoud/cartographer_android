@@ -188,6 +188,7 @@ void ActiveSubmaps::AddSubmap(const Eigen::Vector2f& origin) {
                 CellLimits(kInitialSubmapSize, kInitialSubmapSize)),
       origin));
   LOG(INFO) << "Added submap " << matching_submap_index_ + submaps_.size();
+  LOG(INFO) << "submap size = " << submaps_.size();
 }
 
 }  // namespace mapping_2d

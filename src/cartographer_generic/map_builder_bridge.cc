@@ -38,13 +38,17 @@ int MapBuilderBridge::AddTrajectory(
     const std::unordered_set<string>& expected_sensor_ids,
     const TrajectoryOptions& trajectory_options) {
   const int trajectory_id = map_builder_.AddTrajectoryBuilder(expected_sensor_ids, trajectory_options.trajectory_builder_options);
+  LOG(INFO) << "Added trajectory with ID '" << trajectory_id << "'.";
 
+  // Make sure there is no trajectory with 'trajectory_id' yet.
+  CHECK_EQ(sensor_bridges_.count(trajectory_id), 0);
   sensor_bridges_[trajectory_id] =
       cartographer::common::make_unique<SensorBridge>(
           trajectory_options.num_subdivisions_per_laser_scan,
           trajectory_options.tracking_frame,
           node_options_.lookup_transform_timeout_sec, /*tf_buffer_,*/
           map_builder_.GetTrajectoryBuilder(trajectory_id));
+
   auto emplace_result =
       trajectory_options_.emplace(trajectory_id, trajectory_options);
   CHECK(emplace_result.second == true);
@@ -80,6 +84,7 @@ cartographer_generic_msgs::SubmapList MapBuilderBridge::GetSubmapList() {
       submap_list.submap.push_back(submap_entry);
     }
   }
+  LOG(INFO) << "submap size " <<  submap_list.submap.size();
   return submap_list;
 }
 

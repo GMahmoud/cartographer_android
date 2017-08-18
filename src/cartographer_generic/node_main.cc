@@ -5,29 +5,31 @@
 #include "cartographer/common/lua_parameter_dictionary.h"
 #include "cartographer/common/make_unique.h"
 #include "cartographer/common/port.h"
+#include "cartographer/common/time.h"
 #include "cartographer_generic/node.h"
 #include "cartographer_generic/node_options.h"
 #include "cartographer_generic/trajectory_options.h"
 #include "cartographer_generic_msgs/LaserScan.h"
 #include "cartographer_generic_msgs/Odometry.h"
 #include <android/log.h>
-#include "cartographer/transform/rigid_transform.h"
-#include "cartographer/mapping/proto/map_builder_options.pb.h"
-#include <google/protobuf/stubs/common.h>
 #include <glog/logging.h>
-#include <dirent.h>
+
 
 #include "cartographer/mapping_2d/map_limits.h"
 #include "cartographer/mapping_2d/probability_grid.h"
 #include "cartographer_generic/test.h"
+#include "cartographer_generic_msgs/SubmapQuery.h"
+#include "cartographer_generic_msgs/SubmapList.h"
 
 #if __cplusplus
 extern "C" {
 namespace cartographer_generic {
 
-int trajectory_id = 200 ;
+int trajectory_id = -1 ;
+uint32_t i = -1 ;
 string configuration_directory = "/";
 string configuration_basename = "buddy_lidar_2d.lua";
+::cartographer_generic_msgs::SubmapQuery::Response response;
 
 std::tuple<NodeOptions, TrajectoryOptions> LoadOptions() {
 	auto file_resolver = cartographer::common::make_unique<
@@ -67,35 +69,51 @@ Node* _Run() {
 
 int _GetTrajectoryId (){
 	LOG(INFO) << "_GetTrajectoryId() Begins" ;
+	LOG(INFO) << "Trajectory_id = " << trajectory_id ;
 	LOG(INFO) << "_GetTrajectoryId() Ends" ;
 	return trajectory_id ;
 }
 
-void _LaserScanCallback(Node* node, float* ranges) {
-	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::LaserScan::ConstPtr) Begins" ;
+void _LaserScanCallback(Node* node, float* ranges, int64 time) {
+	//LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::LaserScan::ConstPtr) Begins" ;
 	::cartographer_generic_msgs::LaserScan::Ptr  msg(new ::cartographer_generic_msgs::LaserScan());
-
+    i++;
 	msg->ranges.reserve(360);
 	for(int i=0; i<360; i++)
 		msg->ranges.push_back(ranges[i]) ;
-
-	LOG(INFO) << "ranges size = " << msg->ranges.size();
-	LOG(INFO) << "range(size/2) = " << msg->ranges.at(floor(msg->ranges.size()/2));
-
+	msg->header.stamp = ::cartographer::common::FromUniversal(time);
+    msg->header.seq = i;
+    msg->header.frame_id = "buddy_tablet";
+//	LOG(INFO) << "ranges size = " << msg->ranges.size();
+//	LOG(INFO) << "range(size/2) = " << msg->ranges.at(floor(msg->ranges.size()/2));
 	msg->angle_min=-1.57079637051;
 	msg->angle_max=1.57079637051;
 	msg->angle_increment=0.00872664619237;
+	msg->time_increment=0.0;
 	msg->scan_time=0.0333333350718;
 	msg->range_min=0.449999988079;
 	msg->range_max=6.0;
 	node->LaserScanCallback(msg, trajectory_id);
-	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::LaserScan::ConstPtr) Ends" ;
+	//LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::LaserScan::ConstPtr) Ends" ;
 }
 
 void _OdometryCallback(Node* node, ::cartographer_generic_msgs::Odometry::Ptr& msg) {
 	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::Odometry::ConstPtr) Begins" ;
 	node->OdometryCallback(msg, trajectory_id);
 	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::Odometry::ConstPtr) Ends" ;
+}
+
+
+void _GetOccupancyGrid (Node* node) {
+	LOG(INFO) << " _GetOccupancyGrid (Node* node) Begins" ;
+	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
+    //LOG(INFO) << "Trajectory_id of submap(0) = " << SubmapList.submap.at(0).trajectory_id;
+
+    ::cartographer_generic_msgs::SubmapQuery::Request request;
+	request.submap_index = 0;
+	request.trajectory_id = 0;
+	node->HandleSubmapQuery(request,response);
+	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
 }
 
 void _Stop (Node* node) {
