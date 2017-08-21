@@ -145,7 +145,9 @@ void OrderedMultiQueue::Dispatch() {
     if (next_data->time >= common_start_time) {
       // Happy case, we are beyond the 'common_start_time' already.
       last_dispatched_time_ = next_data->time;
+      LOG(INFO) << "HERE 5.0" ;
       next_queue->callback(next_queue->queue.Pop());
+      LOG(INFO) << "HERE 5.1" ;
     } else if (next_queue->queue.Size() < 2) {
       if (!next_queue->finished) {
         // We cannot decide whether to drop or dispatch this yet.

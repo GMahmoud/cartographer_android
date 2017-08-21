@@ -58,6 +58,7 @@ void CollatedTrajectoryBuilder::AddSensorData(
 
 void CollatedTrajectoryBuilder::HandleCollatedSensorData(
     const string& sensor_id, std::unique_ptr<sensor::Data> data) {
+  LOG(INFO) << "data" << data->rangefinder.ranges.size();
   auto it = rate_timers_.find(sensor_id);
   if (it == rate_timers_.end()) {
     it = rate_timers_
@@ -66,9 +67,9 @@ void CollatedTrajectoryBuilder::HandleCollatedSensorData(
                  std::forward_as_tuple(
                      common::FromSeconds(kSensorDataRatesLoggingPeriodSeconds)))
              .first;
+
   }
   it->second.Pulse(data->time);
-
   if (std::chrono::steady_clock::now() - last_logging_time_ >
       common::FromSeconds(kSensorDataRatesLoggingPeriodSeconds)) {
     for (const auto& pair : rate_timers_) {
@@ -85,8 +86,10 @@ void CollatedTrajectoryBuilder::HandleCollatedSensorData(
       return;
 
     case sensor::Data::Type::kRangefinder:
-      wrapped_trajectory_builder_->AddRangefinderData(
+    	LOG(INFO) << "YOO";
+    	wrapped_trajectory_builder_->AddRangefinderData(
           data->time, data->rangefinder.origin, data->rangefinder.ranges);
+    	LOG(INFO) << "YESSS";
       return;
 
     case sensor::Data::Type::kOdometer:

@@ -31,17 +31,22 @@ GlobalTrajectoryBuilder::~GlobalTrajectoryBuilder() {}
 void GlobalTrajectoryBuilder::AddRangefinderData(
     const common::Time time, const Eigen::Vector3f& origin,
     const sensor::PointCloud& ranges) {
+	LOG(INFO) << "HERE 5.4";
   std::unique_ptr<LocalTrajectoryBuilder::InsertionResult> insertion_result =
       local_trajectory_builder_.AddHorizontalRangeData(
           time, sensor::RangeData{origin, ranges, {}});
+  LOG(INFO) << "HERE 5.5";
   if (insertion_result == nullptr) {
+	  LOG(INFO) << "HERE 5.6";
     return;
   }
+  LOG(INFO) << "HERE 5.7";
   sparse_pose_graph_->AddScan(
       insertion_result->time, insertion_result->tracking_to_tracking_2d,
       insertion_result->range_data_in_tracking_2d,
       insertion_result->pose_estimate_2d, trajectory_id_,
       std::move(insertion_result->insertion_submaps));
+  LOG(INFO) << "HERE 5.8";
 }
 
 void GlobalTrajectoryBuilder::AddImuData(

@@ -11,7 +11,9 @@
 #include "cartographer_generic/trajectory_options.h"
 #include "cartographer_generic_msgs/LaserScan.h"
 #include "cartographer_generic_msgs/Odometry.h"
+#ifdef __ANDROID__
 #include <android/log.h>
+#endif
 #include <glog/logging.h>
 
 
