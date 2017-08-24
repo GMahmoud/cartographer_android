@@ -113,7 +113,7 @@ void Submap::ToResponseProto(
 			cells.push_back(static_cast<uint8>(kUnknownLogOdds));  // value
 			cells.push_back(0);                                    // alpha
 		}
-		LOG(INFO) << cells.end();
+//		LOG(INFO) << cells.end();
 	}
 
 #ifndef __ANDROID__
