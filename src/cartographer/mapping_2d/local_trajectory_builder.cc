@@ -72,15 +72,12 @@ void LocalTrajectoryBuilder::ScanMatch(
 
   transform::Rigid2d tracking_2d_to_map;
   ceres::Solver::Summary summary;
-  LOG(INFO) << "HERE 7.0";
   ceres_scan_matcher_.Match(pose_prediction_2d, initial_ceres_pose,
                             filtered_point_cloud_in_tracking_2d,
                             matching_submap->probability_grid(),
                             &tracking_2d_to_map, &summary);
-  LOG(INFO) << "HERE 7.1";
   *pose_observation =
       transform::Embed3D(tracking_2d_to_map) * tracking_to_tracking_2d;
-  LOG(INFO) << "HERE 7.2";
 }
 
 std::unique_ptr<LocalTrajectoryBuilder::InsertionResult>
@@ -160,12 +157,10 @@ LocalTrajectoryBuilder::AddAccumulatedRangeData(
     LOG(WARNING) << "Dropped empty horizontal range data.";
     return nullptr;
   }
-  LOG(INFO) << "HERE 6.0";
   ScanMatch(time, pose_prediction, tracking_to_tracking_2d,
             range_data_in_tracking_2d, &pose_estimate_);
   odometry_correction_ = transform::Rigid3d::Identity();
   if (!odometry_state_tracker_.empty()) {
-	LOG(INFO) << "HERE 6.1";
     // We add an odometry state, so that the correction from the scan matching
     // is not removed by the next odometry data we get.
     odometry_state_tracker_.AddOdometryState(
@@ -173,11 +168,9 @@ LocalTrajectoryBuilder::AddAccumulatedRangeData(
          odometry_state_tracker_.newest().state_pose *
              odometry_prediction.inverse() * pose_estimate_});
   }
-  LOG(INFO) << "HERE 6.2";
   // Improve the velocity estimate.
   if (last_scan_match_time_ > common::Time::min() &&
       time > last_scan_match_time_) {
-	  LOG(INFO) << "HERE 6.3";
     const double delta_t = common::ToSeconds(time - last_scan_match_time_);
     // This adds the observed difference in velocity that would have reduced the
     // error to zero.
@@ -202,7 +195,6 @@ LocalTrajectoryBuilder::AddAccumulatedRangeData(
 
   const transform::Rigid2d pose_estimate_2d =
       transform::Project2D(tracking_2d_to_map);
-  LOG(INFO) << "HERE 6.4";
   if (motion_filter_.IsSimilar(time, transform::Embed3D(pose_estimate_2d))) {
     return nullptr;
   }
@@ -218,7 +210,6 @@ LocalTrajectoryBuilder::AddAccumulatedRangeData(
   active_submaps_.InsertRangeData(
       TransformRangeData(range_data_in_tracking_2d,
                          transform::Embed3D(pose_estimate_2d.cast<float>())));
-  LOG(INFO) << "HERE 6.5";
   return common::make_unique<InsertionResult>(InsertionResult{
       time, std::move(insertion_submaps), tracking_to_tracking_2d,
       range_data_in_tracking_2d, pose_estimate_2d});

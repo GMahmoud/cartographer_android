@@ -79,15 +79,15 @@ int _GetTrajectoryId (){
 void _LaserScanCallback(Node* node, float* ranges, int64 time) {
 	//LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::LaserScan::ConstPtr) Begins" ;
 	::cartographer_generic_msgs::LaserScan::Ptr  msg(new ::cartographer_generic_msgs::LaserScan());
-    i++;
+	i++;
 	msg->ranges.reserve(360);
 	for(int i=0; i<360; i++)
 		msg->ranges.push_back(ranges[i]) ;
 	msg->header.stamp = ::cartographer::common::FromUniversal(time);
-    msg->header.seq = i;
-    msg->header.frame_id = "buddy_tablet";
-//	LOG(INFO) << "ranges size = " << msg->ranges.size();
-//	LOG(INFO) << "range(size/2) = " << msg->ranges.at(floor(msg->ranges.size()/2));
+	msg->header.seq = i;
+	msg->header.frame_id = "buddy_tablet";
+	//	LOG(INFO) << "ranges size = " << msg->ranges.size();
+	//	LOG(INFO) << "range(size/2) = " << msg->ranges.at(floor(msg->ranges.size()/2));
 	msg->angle_min=-1.57079637051;
 	msg->angle_max=1.57079637051;
 	msg->angle_increment=0.00872664619237;
@@ -106,16 +106,26 @@ void _OdometryCallback(Node* node, ::cartographer_generic_msgs::Odometry::Ptr& m
 }
 
 
-void _GetOccupancyGrid (Node* node) {
+int _GetOccupancyGrid (Node* node, uint8_t* cells) {
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Begins" ;
 	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
-    //LOG(INFO) << "Trajectory_id of submap(0) = " << SubmapList.submap.at(0).trajectory_id;
+	//LOG(INFO) << "Trajectory_id of submap(0) = " << SubmapList.submap.at(0).trajectory_id;
 
-    ::cartographer_generic_msgs::SubmapQuery::Request request;
+	::cartographer_generic_msgs::SubmapQuery::Request request;
 	request.submap_index = 0;
 	request.trajectory_id = 0;
 	node->HandleSubmapQuery(request,response);
+	LOG(INFO) << " Cell size() = " << response.cells.size();
+
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
+	int size = response.cells.size();
+
+	cells = new uint8_t[size];
+	for ( int it=0; it!=size; ++it ){
+		cells[it] = response.cells.at(it);
+		//LOG(INFO) << "cells = " << cells[it];
+	}
+	return size;
 }
 
 void _Stop (Node* node) {

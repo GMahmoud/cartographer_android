@@ -190,10 +190,11 @@ void Submap::ToProto(mapping::proto::Submap* const proto) const {
       low_resolution_hybrid_grid().ToProto();
 }
 
-#ifndef __ANDROID__
+
 void Submap::ToResponseProto(
     const transform::Rigid3d& global_submap_pose,
     mapping::proto::SubmapQuery::Response* const response) const {
+#ifndef __ANDROID__
   response->set_submap_version(num_range_data());
   // Generate an X-ray view through the 'hybrid_grid', aligned to the xy-plane
   // in the global map frame.
@@ -223,8 +224,9 @@ void Submap::ToResponseProto(
       transform::Rigid3d::Translation(Eigen::Vector3d(
           max_index.x() * resolution, max_index.y() * resolution,
           global_submap_pose.translation().z())));
+  #endif
 }
-#endif
+
 
 void Submap::InsertRangeData(const sensor::RangeData& range_data,
                              const RangeDataInserter& range_data_inserter,

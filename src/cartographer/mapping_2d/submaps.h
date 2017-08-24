@@ -52,11 +52,11 @@ class Submap : public mapping::Submap {
   const ProbabilityGrid& probability_grid() const { return probability_grid_; }
   bool finished() const { return finished_; }
 
-#ifndef __ANDROID__
+//#ifndef __ANDROID__
   void ToResponseProto(
       const transform::Rigid3d& global_submap_pose,
       mapping::proto::SubmapQuery::Response* response) const override;
-#endif
+//#endif
 
   // Insert 'range_data' into this submap using 'range_data_inserter'. The
   // submap must not be finished yet.

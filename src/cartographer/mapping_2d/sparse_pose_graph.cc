@@ -108,7 +108,6 @@ void SparsePoseGraph::AddScan(
       GetLocalToGlobalTransform(trajectory_id) * transform::Embed3D(pose));
 
   common::MutexLocker locker(&mutex_);
-  LOG(INFO) << "HERE 5.5.1";
   trajectory_nodes_.Append(
       trajectory_id,
       mapping::TrajectoryNode{
@@ -118,7 +117,6 @@ void SparsePoseGraph::AddScan(
           optimized_pose});
   ++num_trajectory_nodes_;
   trajectory_connectivity_.Add(trajectory_id);
-  LOG(INFO) << "HERE 5.5.2";
   // Test if the 'insertion_submap.back()' is one we never saw before.
   if (trajectory_id >= submap_data_.num_trajectories() ||
       submap_data_.num_indices(trajectory_id) == 0 ||
@@ -126,27 +124,22 @@ void SparsePoseGraph::AddScan(
               .at(mapping::SubmapId{
                   trajectory_id, submap_data_.num_indices(trajectory_id) - 1})
               .submap != insertion_submaps.back()) {
-	  LOG(INFO) << "HERE 5.5.3";
     // We grow 'submap_data_' as needed. This code assumes that the first
     // time we see a new submap is as 'insertion_submaps.back()'.
     const mapping::SubmapId submap_id =
         submap_data_.Append(trajectory_id, SubmapData());
     submap_data_.at(submap_id).submap = insertion_submaps.back();
   }
-  LOG(INFO) << "HERE 5.5.4";
 
   // Make sure we have a sampler for this trajectory.
   if (!global_localization_samplers_[trajectory_id]) {
-	  LOG(INFO) << "HERE 5.5.5";
     global_localization_samplers_[trajectory_id] =
         common::make_unique<common::FixedRatioSampler>(
             options_.global_sampling_ratio());
   }
-  LOG(INFO) << "HERE 5.5.6";
   // We have to check this here, because it might have changed by the time we
   // execute the lambda.
   const bool newly_finished_submap = insertion_submaps.front()->finished();
-  LOG(INFO) << "HERE 5.5.7";
   AddWorkItem([=]() REQUIRES(mutex_) {
     ComputeConstraintsForScan(trajectory_id, insertion_submaps,
                               newly_finished_submap, pose);

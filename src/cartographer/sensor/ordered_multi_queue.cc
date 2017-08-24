@@ -69,9 +69,7 @@ void OrderedMultiQueue::Add(const QueueKey& queue_key,
 	LOG(WARNING) << "Ignored data for queue: '" << queue_key << "'";
     return;
   }
-  LOG(INFO) << it->first.sensor_id << it->first.trajectory_id ;
   it->second.queue.Push(std::move(data));
-  LOG(INFO) << "HERE 1 " ;
   Dispatch();
 
 }
@@ -98,26 +96,17 @@ void OrderedMultiQueue::Dispatch() {
     const Data* next_data = nullptr;
     Queue* next_queue = nullptr;
     QueueKey next_queue_key;
-    LOG(INFO) << "HERE 2" ;
-    LOG(INFO) << "queues_.size() =" << queues_.size();
     for (auto it = queues_.begin(); it != queues_.end();) {
-      LOG(INFO) << it->first.sensor_id << it->first.trajectory_id ;
       const auto* data = it->second.queue.Peek<Data>();
-      LOG(INFO) << "HERE 3" ;
       if (data == nullptr) {
-    	  LOG(INFO) << "HERE 3.1" ;
         if (it->second.finished){
-          LOG(INFO) << "HERE 3.2" ;
           queues_.erase(it++);
           continue;
         }
-
         CannotMakeProgress(it->first);
-        LOG(INFO) << "HERE 3.3" ;
         return;
       }
       if (next_data == nullptr || data->time < next_data->time) {
-    	LOG(INFO) << "HERE 3.4" ;
     	next_data = data;
         next_queue = &it->second;
         next_queue_key = it->first;
@@ -125,9 +114,7 @@ void OrderedMultiQueue::Dispatch() {
       CHECK_LE(last_dispatched_time_, next_data->time)
           << "Non-sorted data added to queue: '" << it->first << "'";
       ++it;
-      LOG(INFO) << "data sorted :)";
     }
-    LOG(INFO) << "HERE 4" ;
     if (next_data == nullptr) {
       LOG(INFO) << "HERE 4.1" ;
       CHECK(queues_.empty());
@@ -139,15 +126,10 @@ void OrderedMultiQueue::Dispatch() {
     const common::Time common_start_time =
         GetCommonStartTime(next_queue_key.trajectory_id);
 
-    LOG(INFO) << "common_start_time = " << ToUniversal(common_start_time)  ;
-    LOG(INFO) << "next_data->time = " << ToUniversal(next_data->time)  ;
-
     if (next_data->time >= common_start_time) {
       // Happy case, we are beyond the 'common_start_time' already.
       last_dispatched_time_ = next_data->time;
-      LOG(INFO) << "HERE 5.0" ;
       next_queue->callback(next_queue->queue.Pop());
-      LOG(INFO) << "HERE 5.1" ;
     } else if (next_queue->queue.Size() < 2) {
       if (!next_queue->finished) {
         // We cannot decide whether to drop or dispatch this yet.

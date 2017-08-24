@@ -135,9 +135,9 @@ string MapBuilder::SubmapToProto(const mapping::SubmapId& submap_id,
 				" from trajectory " + to_string(submap_id.trajectory_id) +
 				" but it has been trimmed.";
 	}
-#ifndef __ANDROID__
+//#ifndef __ANDROID__
 	submap_data.submap->ToResponseProto(submap_data.pose, response);
-#endif
+//#endif
 	return "";
 }
 

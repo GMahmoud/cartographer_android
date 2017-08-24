@@ -70,12 +70,12 @@ class Submap {
   // Number of RangeData inserted.
   int num_range_data() const { return num_range_data_; }
 
-#ifndef __ANDROID__
+//#ifndef __ANDROID__
   // Fills data into the 'response'.
   virtual void ToResponseProto(
       const transform::Rigid3d& global_submap_pose,
       proto::SubmapQuery::Response* response) const = 0;
-#endif
+//#endif
 
  protected:
   void SetNumRangeData(const int num_range_data) {
