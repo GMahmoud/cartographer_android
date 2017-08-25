@@ -123,10 +123,22 @@ int _GetGridSize(Node* node){
         return size;
 }
 
-void _GetOccupancyGrid (Node* node, int* cells) {
+int _GetGridWidth(){
+	return response.width;
+}
+
+int _GetGridHeight(){
+	return response.height;
+}
+
+double _GetGridResolution(){
+	return response.resolution;
+}
+
+void _GetOccupancyGrid (int* cells) {
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Begins" ;
 
-	for ( int it=0; it!=size; ++it )
+	for ( int it=0; it!=response.cells.size(); ++it )
 		cells[it] = static_cast<int>(response.cells[it]);
         
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
