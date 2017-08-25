@@ -31,7 +31,7 @@ int trajectory_id = -1 ;
 uint32_t i = -1 ;
 string configuration_directory = "/";
 string configuration_basename = "buddy_lidar_2d.lua";
-::cartographer_generic_msgs::SubmapQuery::Response* response;
+::cartographer_generic_msgs::SubmapQuery::Response response;
 
 std::tuple<NodeOptions, TrajectoryOptions> LoadOptions() {
 	auto file_resolver = cartographer::common::make_unique<
@@ -115,8 +115,8 @@ int _GetGridSize(Node* node){
 	//response = new ::cartographer_generic_msgs::SubmapQuery::Response ();
 	request.submap_index = 0;
 	request.trajectory_id = 0;
-	node->HandleSubmapQuery(request,*response);
-	int size = response->cells.size();
+	node->HandleSubmapQuery(request,response);
+	int size = response.cells.size();
 
 	LOG(INFO) << " Cell size() = " << size;
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
@@ -140,9 +140,9 @@ void _GetOccupancyGrid (int* cells) {
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Begins" ;
 
 	std::stringstream ss;
-	int size = response->cells.size();
+	int size = response.cells.size();
 	for ( int it=0; it!=size; ++it ){
-		cells[it] = static_cast<int>(response->cells[it]);
+		cells[it] = static_cast<int>(response.cells[it]);
 	    ss << cells[it] << "; ";
 	}
 
