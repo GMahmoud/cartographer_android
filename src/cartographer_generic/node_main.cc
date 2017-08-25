@@ -19,7 +19,7 @@
 
 #include "cartographer/mapping_2d/map_limits.h"
 #include "cartographer/mapping_2d/probability_grid.h"
-#include "cartographer_generic/test.h"
+//#include "cartographer_generic/test.h"
 #include "cartographer_generic_msgs/SubmapQuery.h"
 #include "cartographer_generic_msgs/SubmapList.h"
 
@@ -106,26 +106,30 @@ void _OdometryCallback(Node* node, ::cartographer_generic_msgs::Odometry::Ptr& m
 }
 
 
-int _GetOccupancyGrid (Node* node, uint8_t* cells) {
+int _GetGridSize(Node* node){
+	LOG(INFO) << " _GetGridSize (Node* node) Begins" ;
+        ::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
+        //LOG(INFO) << "Trajectory_id of submap(0) = " << SubmapList.submap.at(0).trajectory_id;
+
+        ::cartographer_generic_msgs::SubmapQuery::Request request;
+        request.submap_index = 0;
+        request.trajectory_id = 0;
+        node->HandleSubmapQuery(request,response);
+        int size = response.cells.size();
+
+        LOG(INFO) << " Cell size() = " << size;
+        LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
+
+        return size;
+}
+
+void _GetOccupancyGrid (Node* node, int* cells) {
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Begins" ;
-	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
-	//LOG(INFO) << "Trajectory_id of submap(0) = " << SubmapList.submap.at(0).trajectory_id;
 
-	::cartographer_generic_msgs::SubmapQuery::Request request;
-	request.submap_index = 0;
-	request.trajectory_id = 0;
-	node->HandleSubmapQuery(request,response);
-	LOG(INFO) << " Cell size() = " << response.cells.size();
-
+	for ( int it=0; it!=size; ++it )
+		cells[it] = static_cast<int>(response.cells[it]);
+        
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
-	int size = response.cells.size();
-
-	cells = new uint8_t[size];
-	for ( int it=0; it!=size; ++it ){
-		cells[it] = response.cells.at(it);
-		//LOG(INFO) << "cells = " << cells[it];
-	}
-	return size;
 }
 
 void _Stop (Node* node) {
