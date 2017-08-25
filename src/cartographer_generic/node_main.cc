@@ -31,7 +31,7 @@ int trajectory_id = -1 ;
 uint32_t i = -1 ;
 string configuration_directory = "/";
 string configuration_basename = "buddy_lidar_2d.lua";
-::cartographer_generic_msgs::SubmapQuery::Response response;
+::cartographer_generic_msgs::SubmapQuery::Response* response;
 
 std::tuple<NodeOptions, TrajectoryOptions> LoadOptions() {
 	auto file_resolver = cartographer::common::make_unique<
@@ -108,19 +108,20 @@ void _OdometryCallback(Node* node, ::cartographer_generic_msgs::Odometry::Ptr& m
 
 int _GetGridSize(Node* node){
 	LOG(INFO) << " _GetGridSize (Node* node) Begins" ;
-        ::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
-        //LOG(INFO) << "Trajectory_id of submap(0) = " << SubmapList.submap.at(0).trajectory_id;
+	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
+	//LOG(INFO) << "Trajectory_id of submap(0) = " << SubmapList.submap.at(0).trajectory_id;
 
-        ::cartographer_generic_msgs::SubmapQuery::Request request;
-        request.submap_index = 0;
-        request.trajectory_id = 0;
-        node->HandleSubmapQuery(request,response);
-        int size = response.cells.size();
+	::cartographer_generic_msgs::SubmapQuery::Request request;
+	//response = new ::cartographer_generic_msgs::SubmapQuery::Response ();
+	request.submap_index = 0;
+	request.trajectory_id = 0;
+	node->HandleSubmapQuery(request,*response);
+	int size = response->cells.size();
 
-        LOG(INFO) << " Cell size() = " << size;
-        LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
+	LOG(INFO) << " Cell size() = " << size;
+	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
 
-        return size;
+	return size;
 }
 
 int _GetGridWidth(){
@@ -138,9 +139,14 @@ double _GetGridResolution(){
 void _GetOccupancyGrid (int* cells) {
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Begins" ;
 
-	for ( int it=0; it!=response.cells.size(); ++it )
-		cells[it] = static_cast<int>(response.cells[it]);
-        
+	std::stringstream ss;
+	int size = response->cells.size();
+	for ( int it=0; it!=size; ++it ){
+		cells[it] = static_cast<int>(response->cells[it]);
+	    ss << cells[it] << "; ";
+	}
+
+	LOG(INFO) << "cells = [ " << ss << "]";
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
 }
 
