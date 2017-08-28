@@ -141,8 +141,8 @@ void _GetOccupancyGrid (int* intensity, int* alpha) {
 	
 	for (int i = 0; i < response.height; ++i) {
     		for (int j = 0; j < response.width; ++j) {
-      			intensity[i] = static_cast<int>(response.cells[(i * response.width + j) * 2]);
-      			alpha[i] = static_cast<int>(response.cells[(i * response.width + j) * 2 + 1]);
+      			intensity[i*response.width + j] = static_cast<int>(response.cells[(i * response.width + j) * 2]);
+      			alpha[i*response.width + j] = static_cast<int>(response.cells[(i * response.width + j) * 2 + 1]);
 			}
 	}
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
