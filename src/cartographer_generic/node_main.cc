@@ -110,7 +110,7 @@ int _GetGridSize(Node* node){
 	LOG(INFO) << " _GetGridSize (Node* node) Begins" ;
         ::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
         //LOG(INFO) << "Trajectory_id of submap(0) = " << SubmapList.submap.at(0).trajectory_id;
-
+	response.cells.clear();
         ::cartographer_generic_msgs::SubmapQuery::Request request;
         request.submap_index = 0;
         request.trajectory_id = 0;
@@ -135,12 +135,15 @@ double _GetGridResolution(){
 	return response.resolution;
 }
 
-void _GetOccupancyGrid (int* cells) {
+void _GetOccupancyGrid (int* intensity, int* alpha) {
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Begins" ;
-
-	for ( int it=0; it!=response.cells.size(); ++it )
-		cells[it] = static_cast<int>(response.cells[it]);
-        
+	
+	for (int i = 0; i < response.height; ++i) {
+    		for (int j = 0; j < response.width; ++j) {
+      			intensity[i] = static_cast<int>(response.cells[(i * response.width + j) * 2]);
+      			alpha[i] = static_cast<int>(response.cells[(i * response.width + j) * 2 + 1]);
+			}
+	}
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
 }
 
