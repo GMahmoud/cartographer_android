@@ -88,6 +88,11 @@ MapBuilderBridge* Node::map_builder_bridge() { return &map_builder_bridge_; }
 	return SubmapList;
 }
 
+cartographer_generic_msgs::MarkerArray Node::GetTrajectoryNodeList(::cartographer::common::Time time) {
+	carto::common::MutexLocker lock(&mutex_);
+	cartographer_generic_msgs::MarkerArray TrajectoryList = map_builder_bridge_.GetTrajectoryNodeList(time);
+	return  TrajectoryList;
+}
 
 bool Node::HandleSubmapQuery(
     ::cartographer_generic_msgs::SubmapQuery::Request& request,
@@ -177,14 +182,7 @@ bool Node::HandleSubmapQuery(
 //	}
 //}
 //
-//void Node::PublishTrajectoryNodeList(
-//		const ::ros::WallTimerEvent& unused_timer_event) {
-//	carto::common::MutexLocker lock(&mutex_);
-//	if (trajectory_node_list_publisher_.getNumSubscribers() > 0) {
-//		trajectory_node_list_publisher_.publish(
-//				map_builder_bridge_.GetTrajectoryNodeList());
-//	}
-//}
+
 //
 //void Node::PublishConstraintList(
 //		const ::ros::WallTimerEvent& unused_timer_event) {

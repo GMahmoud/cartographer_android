@@ -116,4 +116,46 @@ SensorBridge* MapBuilderBridge::sensor_bridge(const int trajectory_id) {
   return sensor_bridges_.at(trajectory_id).get();
 }
 
+cartographer_generic_msgs::MarkerArray MapBuilderBridge::GetTrajectoryNodeList(::cartographer::common::Time time) {
+  cartographer_generic_msgs::MarkerArray trajectory_node_list;
+  const auto all_trajectory_nodes =
+      map_builder_.sparse_pose_graph()->GetTrajectoryNodes();
+  int marker_id = 0;
+  for (int trajectory_id = 0;
+       trajectory_id < static_cast<int>(all_trajectory_nodes.size());
+       ++trajectory_id) {
+    const auto& single_trajectory_nodes = all_trajectory_nodes[trajectory_id];
+    cartographer_generic_msgs::Marker marker;
+    marker.id = marker_id++;
+    marker.header.stamp = time;
+    marker.header.frame_id = node_options_.map_frame;
+    marker.scale.x = kTrajectoryLineStripMarkerScale;
+    marker.pose.orientation.w = 1.0;
+    marker.pose.position.z = 0.05;
+    for (const auto& node : single_trajectory_nodes) {
+      if (node.trimmed()) {
+        continue;
+      }
+      // In 2D, the pose in node.pose is xy-aligned. Multiplying by
+      // node.constant_data->tracking_to_pose would give the full orientation,
+      // but that is not needed here since we are only interested in the
+      // translational part.
+      const ::cartographer_generic_msgs::Point node_point =
+          ToGeometryMsgPoint(node.pose.translation());
+      marker.points.push_back(node_point);
+      // Work around the 16384 point limit in RViz by splitting the
+      // trajectory into multiple markers.
+      if (marker.points.size() == 16384) {
+        trajectory_node_list.markers.push_back(marker);
+        marker.id = marker_id++;
+        marker.points.clear();
+        // Push back the last point, so the two markers appear connected.
+        marker.points.push_back(node_point);
+      }
+    }
+    trajectory_node_list.markers.push_back(marker);
+  }
+  return trajectory_node_list;
+}
+
 }  // namespace cartographer_generic

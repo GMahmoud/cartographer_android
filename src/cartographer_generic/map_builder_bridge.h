@@ -14,6 +14,7 @@
 #include "cartographer_generic/trajectory_options.h"
 #include "cartographer_generic_msgs/SubmapList.h"
 #include "cartographer_generic_msgs/SubmapQuery.h"
+#include "cartographer_generic_msgs/MarkerArray.h"
 
 namespace cartographer_generic {
 
@@ -42,7 +43,7 @@ class MapBuilderBridge {
 		  cartographer_generic_msgs::SubmapQuery::Response& response);
 
   //std::unordered_map<int, TrajectoryState> GetTrajectoryStates();
-  //visualization_msgs::MarkerArray GetTrajectoryNodeList();
+  cartographer_generic_msgs::MarkerArray GetTrajectoryNodeList(::cartographer::common::Time time);
   //visualization_msgs::MarkerArray GetConstraintList();
 
   SensorBridge* sensor_bridge(int trajectory_id);

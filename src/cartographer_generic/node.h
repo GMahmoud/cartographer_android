@@ -32,6 +32,7 @@
 #include "cartographer_generic/map_builder_bridge.h"
 #include "cartographer_generic_msgs/SubmapList.h"
 #include "cartographer_generic_msgs/SubmapQuery.h"
+#include "cartographer_generic_msgs/MarkerArray.h"
 
 
 
@@ -61,6 +62,8 @@ public:
 
 	MapBuilderBridge* map_builder_bridge();
 	::cartographer_generic_msgs::SubmapList GetSubmapList();
+	::cartographer_generic_msgs::MarkerArray GetTrajectoryNodeList(::cartographer::common::Time time);
+
 	bool HandleSubmapQuery(
 	    ::cartographer_generic_msgs::SubmapQuery::Request& request,
 	    ::cartographer_generic_msgs::SubmapQuery::Response& response);
