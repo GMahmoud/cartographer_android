@@ -8,9 +8,11 @@
 #include "cartographer/common/time.h"
 #include "cartographer_generic/node.h"
 #include "cartographer_generic/node_options.h"
+#include "cartographer_generic/buddy_lidar_2d.lua.h"
 #include "cartographer_generic/trajectory_options.h"
 #include "cartographer_generic_msgs/LaserScan.h"
 #include "cartographer_generic_msgs/Odometry.h"
+
 #ifdef __ANDROID__
 #include <android/log.h>
 #endif
@@ -33,6 +35,7 @@ string configuration_directory = "/";
 string configuration_basename = "buddy_lidar_2d.lua";
 ::cartographer_generic_msgs::SubmapQuery::Response response;
 
+
 std::tuple<NodeOptions, TrajectoryOptions> LoadOptions() {
 	auto file_resolver = cartographer::common::make_unique<
 			cartographer::common::ConfigurationFileResolver>(
@@ -45,6 +48,12 @@ std::tuple<NodeOptions, TrajectoryOptions> LoadOptions() {
 			CreateTrajectoryOptions(&lua_parameter_dictionary));
 }
 
+
+void _LoadLua(const char*basename, int size_basename, const char* code, int size_code ){
+	string basename_str (basename, size_basename);
+	string code_str (code, size_code);
+	cartographer_generic::SetCode(basename_str,code_str);
+}
 
 
 Node* _Run() {
@@ -138,12 +147,12 @@ double _GetGridResolution(){
 
 void _GetOccupancyGrid (int* intensity, int* alpha) {
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Begins" ;
-	
+
 	for (int i = 0; i < response.height; ++i) {
-    		for (int j = 0; j < response.width; ++j) {
-      			intensity[i] = static_cast<int>(response.cells[(i * response.width + j) * 2]);
-      			alpha[i] = static_cast<int>(response.cells[(i * response.width + j) * 2 + 1]);
-			}
+		for (int j = 0; j < response.width; ++j) {
+			intensity[i] = static_cast<int>(response.cells[(i * response.width + j) * 2]);
+			alpha[i] = static_cast<int>(response.cells[(i * response.width + j) * 2 + 1]);
+		}
 	}
 	LOG(INFO) << " _GetOccupancyGrid (Node* node) Ends" ;
 }

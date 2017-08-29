@@ -51,9 +51,7 @@ string ConfigurationFileResolver::GetFullPathOrDie(const string& basename) {
 
 string ConfigurationFileResolver::GetFileContentOrDie(const string& basename) {
 #ifdef __ANDROID__
-	cartographer_generic::buddy_lua lua;
-	return lua.GetCode(basename);
-
+	return cartographer_generic::GetCode(basename);
 #else
 	const string filename = GetFullPathOrDie(basename);
 	std::ifstream stream(filename.c_str());

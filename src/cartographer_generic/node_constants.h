@@ -43,6 +43,7 @@ constexpr int kLatestOnlyPublisherQueueSize = 1;
 std::vector<std::string> ComputeRepeatedTopicNames(const std::string& topic,
                                                    int num_topics);
 
+
 }  // namespace cartographer_generic
 
 #endif  // CARTOGRAPHER_GENERIC_NODE_CONSTANTS_H_
