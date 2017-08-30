@@ -115,6 +115,18 @@ void _GetPose (Node* node, int64 time){
 	LOG(INFO) << "_GetTrajectoryList() Begins" ;
 	::cartographer::common::Time time_now = ::cartographer::common::FromUniversal(time);
 	::cartographer_generic_msgs::MarkerArray TrajectoryList = node->GetTrajectoryNodeList(time_now);
+	LOG(INFO) << "TrajectoryList.markers.size() =" << TrajectoryList.markers.size();
+	std::stringstream ss;
+	for(int i=0 ; i<TrajectoryList.markers.size(); i++ ){
+		::cartographer_generic_msgs::Marker marker = TrajectoryList.markers.at(i);
+		ss << marker.id << ": {" ;
+		for(int j=0; j<marker.points.size(); j++ ){
+			::cartographer_generic_msgs::Point point=marker.points.at(j);
+			ss << "(" << point.x << "," << point.y << "," << point.z << ")" ;
+		}
+		ss << "} \n";
+	}
+	LOG(INFO) << ss.str();
 	LOG(INFO) << "_GetTrajectoryList() Ends" ;
 	return;
 }
