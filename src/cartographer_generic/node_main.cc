@@ -165,7 +165,7 @@ void _GetOccupancyGrid (int* intensity, int* alpha) {
 /*******************************************************************************
 * - Trajectory Query/Retrieve
 ********************************************************************************/
-void _GetPose (Node* node, int64 time){
+void _GetPose (Node* node, int64 time, float* pose){
 	LOG(INFO) << "_GetTrajectoryList() Begins" ;
 	::cartographer::common::Time time_now = ::cartographer::common::FromUniversal(time);
 	::cartographer_generic_msgs::MarkerArray TrajectoryList = node->GetTrajectoryNodeList(time_now);

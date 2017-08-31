@@ -104,7 +104,8 @@ file(GLOB_RECURSE ALL_CARTO_GEN_SRCS  "/opt/toolchain/sysroot/usr/include/glog/*
                              "src/cartographer_generic/node_options.*"
                              "src/cartographer_generic/trajectory_options.*"			
 							 "src/cartographer_generic/map_builder_bridge.*"  
-							 "src/cartographer_generic/node.*"                                                         
+							 "src/cartographer_generic/node.*"
+			     "src/cartographer_generic/buddy*"                                                         
                         																 ) 
 
 
