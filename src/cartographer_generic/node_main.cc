@@ -111,7 +111,7 @@ int _HandleSubmapQuery(Node* node){
 	return request.submap_index;
 }
 
-void _GetPose (Node* node, int64 time){
+void _GetPose (Node* node, int64 time, float* pose){
 	LOG(INFO) << "_GetTrajectoryList() Begins" ;
 	::cartographer::common::Time time_now = ::cartographer::common::FromUniversal(time);
 	::cartographer_generic_msgs::MarkerArray TrajectoryList = node->GetTrajectoryNodeList(time_now);
@@ -123,6 +123,9 @@ void _GetPose (Node* node, int64 time){
 		for(int j=0; j<marker.points.size(); j++ ){
 			::cartographer_generic_msgs::Point point=marker.points.at(j);
 			ss << "(" << point.x << "," << point.y << "," << point.z << ")" ;
+			pose[0] = point.x;
+			pose[1] = point.y;
+			pose[2] = point.z;
 		}
 		ss << "} \n";
 	}
