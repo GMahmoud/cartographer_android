@@ -31,7 +31,8 @@ string configuration_directory = "/";
 string configuration_basename = "buddy_lidar_2d.lua";
 
 //LaserScan callback message
-::cartographer_generic_msgs::LaserScan::Ptr msg;
+::cartographer_generic_msgs::LaserScan::Ptr laser_msg;
+::cartographer_generic_msgs::Odometry::Ptr odom_msg;
 
 //Current submap query response
 ::cartographer_generic_msgs::SubmapQuery::Response response;
@@ -65,17 +66,23 @@ Node* _Init() {
 	constexpr double kTfBufferCacheTimeInSeconds = 1e6;
 
     //Init LaserScan msg constants
-    msg.reset(new cartographer_generic_msgs::LaserScan());
-    msg->ranges.reserve(360);
-    msg->header.seq = 0;
-    msg->header.frame_id = "buddy_tablet";
-    msg->angle_min=-1.57079637051;
-    msg->angle_max=1.57079637051;
-    msg->angle_increment=0.00872664619237;
-    msg->time_increment=0.0;
-    msg->scan_time=0.0333333350718;
-    msg->range_min=0.449999988079;
-    msg->range_max=6.0;
+    laser_msg.reset(new cartographer_generic_msgs::LaserScan());
+    laser_msg->ranges.reserve(360);
+    laser_msg->header.seq = 0;
+    laser_msg->header.frame_id = "buddy_tablet";
+    laser_msg->angle_min=-1.57079637051;
+    laser_msg->angle_max=1.57079637051;
+    laser_msg->angle_increment=0.00872664619237;
+    laser_msg->time_increment=0.0;
+    laser_msg->scan_time=0.0333333350718;
+    laser_msg->range_min=0.449999988079;
+    laser_msg->range_max=6.0;
+
+    //Init Odometry msg constants
+    odom_msg.reset(new cartographer_generic_msgs::Odometry());
+    odom_msg->header.seq=0;
+    odom_msg->header.frame_id = "world";
+    odom_msg->child_frame_id = "buddy_tablet";
 
     //TODO
     //  tf2_ros::Buffer tf_buffer{::ros::Duration(kTfBufferCacheTimeInSeconds)};
@@ -109,21 +116,49 @@ void _Stop (Node* node) {
 * - Main callback handler : LaserScan, Odometry, IMU...
 ********************************************************************************/
 void _LaserScanCallback(Node* node, float* ranges, int64 time) {
-    msg->ranges.clear(); //clear does not resize
+    laser_msg->ranges.clear(); //clear does not resize
     for(int i=0; i<360; i++) //1° definition - LaserScan data
-	   msg->ranges.push_back(ranges[i]) ;
+	   laser_msg->ranges.push_back(ranges[i]) ;
     //Convert time ticks in common time
-    msg->header.stamp = ::cartographer::common::FromUniversal(time);
+    laser_msg->header.stamp = ::cartographer::common::FromUniversal(time);
 
-    node->LaserScanCallback(msg, trajectory_id);
+    node->LaserScanCallback(laser_msg, trajectory_id);
     //Increment header sequence
-    msg->header.seq++;
+    laser_msg->header.seq++;
 }
 
-void _OdometryCallback(Node* node, ::cartographer_generic_msgs::Odometry::Ptr& msg) {
-	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::Odometry::ConstPtr) Begins" ;
-	node->OdometryCallback(msg, trajectory_id);
-	LOG(INFO) << "_LaserScanCallback(Node*, ::cartographer_generic_msgs::Odometry::ConstPtr) Ends" ;
+/*******************************************************************************
+* - Expecting pose, twist and covariance in the following format :
+* - pose as [x,y,z] + quat[x,y,z,w] and covariance pose [36]
+* - twist as [x,y,z] + [x,y,z] and covariance twist [36]
+********************************************************************************/
+void _OdometryCallback(Node* node, float* pose, float* pose_covariance, float* twist, float* twist_covariance, int64 time) {
+
+    odom_msg->pose.pose.position.x = pose[0];
+    odom_msg->pose.pose.position.y = pose[1];
+    odom_msg->pose.pose.position.z = pose[2];
+    odom_msg->pose.pose.orientation.x = pose[3];
+    odom_msg->pose.pose.orientation.x = pose[4];
+    odom_msg->pose.pose.orientation.y = pose[5];
+    odom_msg->pose.pose.orientation.w = pose[6];
+
+    odom_msg->twist.twist.linear.x = twist[0];
+    odom_msg->twist.twist.linear.y = twist[1];
+    odom_msg->twist.twist.linear.z = twist[2];
+    odom_msg->twist.twist.angular.x = twist[3];
+    odom_msg->twist.twist.angular.y = twist[4];
+    odom_msg->twist.twist.angular.z = twist[5];
+
+    for(int i=0 ; i<36 ; i++){
+        odom_msg->pose.covariance[i]=pose_covariance[i];
+        odom_msg->twist.covariance[i]=twist_covariance[i];
+    }
+
+    odom_msg->header.stamp = ::cartographer::common::FromUniversal(time);
+
+    node->OdometryCallback(odom_msg, trajectory_id);
+
+    odom_msg->header.seq++;
 }
 
 /*******************************************************************************
