@@ -24,6 +24,8 @@
 extern "C" {
 namespace cartographer_generic {
 
+int android_log_max_length = 1000;
+
 //Current trajectory id
 int trajectory_id = -1 ;
 
@@ -68,7 +70,7 @@ Node* _Init() {
     //Init LaserScan msg constants
     laser_msg.reset(new cartographer_generic_msgs::LaserScan());
     laser_msg->ranges.reserve(360);
-    laser_msg->header.seq = 0;
+    laser_msg->header.seq = 1;
     laser_msg->header.frame_id = "buddy_tablet";
     laser_msg->angle_min=-1.57079637051;
     laser_msg->angle_max=1.57079637051;
@@ -80,9 +82,9 @@ Node* _Init() {
 
     //Init Odometry msg constants
     odom_msg.reset(new cartographer_generic_msgs::Odometry());
-    odom_msg->header.seq=0;
+    odom_msg->header.seq=1;
     odom_msg->header.frame_id = "world";
-    odom_msg->child_frame_id = "buddy_tablet";
+    odom_msg->child_frame_id = "buddy";
 
     //TODO
     //  tf2_ros::Buffer tf_buffer{::ros::Duration(kTfBufferCacheTimeInSeconds)};
@@ -186,6 +188,18 @@ double _GetGridResolution(){
 	return response.cells.size()!=0 ? response.resolution : -1;
 }
 
+//Pose format as [x,y,z] + quat[x,y,z,w]
+void _GetSubmapPose(double* pose)
+{
+    pose[0] = response.cells.size()!=0 ? response.slice_pose.position.x : 0;
+    pose[1] = response.cells.size()!=0 ? response.slice_pose.position.y : 0;
+    pose[2] = response.cells.size()!=0 ? response.slice_pose.position.z : 0;
+    pose[3] = response.cells.size()!=0 ? response.slice_pose.orientation.x : 0;
+    pose[4] = response.cells.size()!=0 ? response.slice_pose.orientation.y : 0;
+    pose[5] = response.cells.size()!=0 ? response.slice_pose.orientation.z : 0;
+    pose[6] = response.cells.size()!=0 ? response.slice_pose.orientation.w : 0;
+}
+
 //Retrieve occupancy grid
 //intensity and alpha channels are converted form uint8 (char) to int
 void _GetOccupancyGrid (int* intensity, int* alpha) {
@@ -201,11 +215,9 @@ void _GetOccupancyGrid (int* intensity, int* alpha) {
 * - Trajectory Query/Retrieve
 ********************************************************************************/
 void _GetPose (Node* node, int64 time, float* pose){
-	LOG(INFO) << "_GetTrajectoryList() Begins" ;
 	::cartographer::common::Time time_now = ::cartographer::common::FromUniversal(time);
-	::cartographer_generic_msgs::MarkerArray TrajectoryList = node->GetTrajectoryNodeList(time_now);
-	LOG(INFO) << "TrajectoryList.markers.size() =" << TrajectoryList.markers.size();
-	std::stringstream ss;
+    ::cartographer_generic_msgs::MarkerArray TrajectoryList = node->GetTrajectoryNodeList(time_now);
+    std::stringstream ss;
 	for(int i=0 ; i<TrajectoryList.markers.size(); i++ ){
 		::cartographer_generic_msgs::Marker marker = TrajectoryList.markers.at(i);
 		ss << marker.id << ": {" ;
@@ -218,9 +230,13 @@ void _GetPose (Node* node, int64 time, float* pose){
 		}
 		ss << "} \n";
 	}
-	LOG(INFO) << ss.str();
-	LOG(INFO) << "_GetTrajectoryList() Ends" ;
-	return;
+    int read=0;
+    std::string substr;
+    do {
+        substr = ss.str().substr(read,android_log_max_length);
+        LOG(INFO) << substr;
+        read+=substr.length();
+    } while(read<ss.str().length());
 }
 
 
