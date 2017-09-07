@@ -219,9 +219,16 @@ void OptimizationProblem::Solve(const std::vector<Constraint>& constraints,
 
   // Solve.
   ceres::Solver::Summary summary;
-  ceres::Solve(
-      common::CreateCeresSolverOptions(options_.ceres_solver_options()),
-      &problem, &summary);
+  ceres::Solver::Options solver_options = common::CreateCeresSolverOptions(options_.ceres_solver_options());
+#ifdef __ANDROID__
+  /*****************************************************************************
+  * TODO FCA : Replace Sparse Normal Cholesky solver with Eigen DenseQR solver (as for
+  * scan matching). Check incidence on performance and results (loop closure ?)
+  * At first, DenseQR does not seem to support multi_thread option (openMp build)
+  ******************************************************************************/
+  solver_options.linear_solver_type = ceres::DENSE_QR;
+#endif
+  ceres::Solve(solver_options, &problem, &summary);
 
   if (options_.log_solver_summary()) {
     LOG(INFO) << summary.FullReport();
