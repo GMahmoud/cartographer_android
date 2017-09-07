@@ -91,9 +91,7 @@ void CeresScanMatcher::Match(const transform::Rigid2d& previous_pose,
           new RotationDeltaCostFunctor(options_.rotation_weight(),
                                        ceres_pose_estimate[2])),
       nullptr, ceres_pose_estimate);
-  //ceres::Solve(ceres_solver_options_, &problem, summary);
-  ceres::Solver solver;
-  solver.Solve(ceres_solver_options_, &problem, summary);
+  ceres::Solve(ceres_solver_options_, &problem, summary);
   *pose_estimate = transform::Rigid2d(
       {ceres_pose_estimate[0], ceres_pose_estimate[1]}, ceres_pose_estimate[2]);
 }
