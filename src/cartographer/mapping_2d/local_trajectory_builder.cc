@@ -152,7 +152,10 @@ LocalTrajectoryBuilder::AddAccumulatedRangeData(
   const sensor::RangeData range_data_in_tracking_2d =
       TransformAndFilterRangeData(tracking_to_tracking_2d.cast<float>(),
                                   range_data);
-
+#ifdef __ANDROID__
+  if(range_data_in_tracking_2d.returns.size() != range_data.returns.size())
+    LOG(WARNING) << "Some range data have been cropped ! Check the transform flow or trajectory_builder min_z, max_z configuration !";
+#endif
   if (range_data_in_tracking_2d.returns.empty()) {
     LOG(WARNING) << "Dropped empty horizontal range data.";
     return nullptr;
