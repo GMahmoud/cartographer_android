@@ -25,10 +25,8 @@ extern "C" {
 namespace cartographer_generic {
 
 int android_log_max_length = 1000;
-
 //Current trajectory id
 int trajectory_id = -1 ;
-
 string configuration_directory = "/";
 string configuration_basename = "buddy_lidar_2d.lua";
 
@@ -54,6 +52,33 @@ std::tuple<NodeOptions, TrajectoryOptions> LoadOptions() {
 			CreateTrajectoryOptions(&lua_parameter_dictionary));
 }
 
+void ComposePoses(double* pose, double* pose1 , double* pose2){
+	double x1 = pose1[0];
+	double y1 = pose1[1];
+	double z1 = pose1[2];
+	double qw1 = pose1[3];
+	double qx1 = pose1[4];
+	double qy1 = pose1[5];
+	double qz1 = pose1[6];
+
+	double x2 = pose2[0];
+	double y2 = pose2[1];
+	double z2 = pose2[2];
+	double qw2 = pose2[3];
+	double qx2 = pose2[4];
+	double qy2 = pose2[5];
+	double qz2 = pose2[6];
+
+	pose[0] = x1 + x2 + 2*(-(qy1*qy1+qz1*qz1)*x2 + (qx1*qy1-qw1*qz1)*y2 + (qw1*qy1+qx1*qz1)*z2);
+	pose[1] = y1 + y2 + 2*((qw1*qz1+qx1*qy1)*x2 - (qx1*qx1+qz1*qz1)*y2 + (qy1*qz1-qw1*qx1)*z2);
+	pose[2] = z1 + z2 + 2*((qx1*qz1-qw1*qy1)*x2 + (qw1*qx1+qy1*qz1)*y2 - (qx1*qx1-qy1*qy1)*z2);
+
+	pose[3] = qw1*qw2 - qx1*qx2 - qy1*qy2 - qz1*qz2;
+	pose[4] = qw1*qx2 + qw2*qx1 + qy1*qz2 - qy2*qz1;
+	pose[5] = qw1*qy2 + qw2*qy1 + qz1*qx2 - qz2*qx1;
+	pose[6] = qw1*qz2 + qw2*qz1 + qx1*qy2 - qx2*qy1;
+}
+
 
 void _LoadLua(const char*basename, int size_basename, const char* code, int size_code ){
 	string basename_str (basename, size_basename);
@@ -66,7 +91,6 @@ void _LoadLua(const char*basename, int size_basename, const char* code, int size
  ********************************************************************************/
 Node* _Init() {
 	constexpr double kTfBufferCacheTimeInSeconds = 1e6;
-
 	//Init LaserScan msg constants
 	laser_msg.reset(new cartographer_generic_msgs::LaserScan());
 	laser_msg->ranges.reserve(360);
@@ -79,6 +103,16 @@ Node* _Init() {
 	laser_msg->scan_time=0.0333333350718;
 	laser_msg->range_min=0.449999988079;
 	laser_msg->range_max=6.0;
+	//	laser_msg->ranges.reserve(1040);
+	//	laser_msg->header.seq = 1;
+	//	laser_msg->header.frame_id = "base_laser_link";
+	//	laser_msg->angle_min=-2.26892805099;
+	//	laser_msg->angle_max=2.26456475258;
+	//	laser_msg->angle_increment=0.00436332309619;
+	//	laser_msg->time_increment=1.73611115315e-05;
+	//	laser_msg->scan_time=0.0500000007451;
+	//	laser_msg->range_min=0.0230000000447;
+	//	laser_msg->range_max=60.0;
 
 	//Init Odometry msg constants
 	odom_msg.reset(new cartographer_generic_msgs::Odometry());
@@ -117,13 +151,13 @@ void _Stop (Node* node) {
 /*******************************************************************************
  * - Main callback handler : LaserScan, Odometry, IMU...
  ********************************************************************************/
-void _LaserScanCallback(Node* node, float* ranges, int64 time) {
+void _LaserScanCallback(Node* node, float* ranges, int64 time, double* pose_ros) {
 	laser_msg->ranges.clear(); //clear does not resize
 	for(int i=0; i<360; i++) //1° definition - LaserScan data
 		laser_msg->ranges.push_back(ranges[i]) ;
 	//Convert time ticks in common time
 	laser_msg->header.stamp = ::cartographer::common::FromUniversal(time);
-
+	cartographer_generic::SetPoseEstimate(pose_ros);
 	node->LaserScanCallback(laser_msg, trajectory_id);
 	//Increment header sequence
 	laser_msg->header.seq++;
@@ -193,31 +227,57 @@ void _GetSubmapPose(Node* node, double* pose)
 {
 	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
 	::cartographer_generic_msgs::SubmapEntry LastSubEnt = SubmapList.submap.back();
-	pose[0] = LastSubEnt.pose.position.x ;
-	pose[1] = LastSubEnt.pose.position.y ;
-	pose[2] = LastSubEnt.pose.position.z ;
-	pose[3] = LastSubEnt.pose.orientation.x ;
-	pose[4] = LastSubEnt.pose.orientation.y ;
-	pose[5] = LastSubEnt.pose.orientation.z ;
-	pose[6] = LastSubEnt.pose.orientation.w ;
 
-	std::stringstream ss;
-	int size = SubmapList.submap.size();
-	for(int i=0; i<size; i++ ){
-		::cartographer_generic_msgs::SubmapEntry subEnt = SubmapList.submap[i];
-		ss << "Submap" << subEnt.submap_index << ": {" ;
-		ss << "Position (" << subEnt.pose.position.x << "," << subEnt.pose.position.y << "," << subEnt.pose.position.z << "), " ;
-		ss << "Orientation (" << subEnt.pose.orientation.x << "," << subEnt.pose.orientation.y << "," << subEnt.pose.orientation.z << "," << subEnt.pose.orientation.w << ")" ;
-		ss << "} \n";
-	}
+	double slice_pose[7];
+	double submap_pose[7];
+	submap_pose[0] = LastSubEnt.pose.position.x ;
+	submap_pose[1] = LastSubEnt.pose.position.y ;
+	submap_pose[2] = LastSubEnt.pose.position.z ;
+	submap_pose[3] = LastSubEnt.pose.orientation.w ;
+	submap_pose[4] = LastSubEnt.pose.orientation.x ;
+	submap_pose[5] = LastSubEnt.pose.orientation.y ;
+	submap_pose[6] = LastSubEnt.pose.orientation.z ;
 
-	int read=0;
-	std::string substr;
-	do {
-		substr = ss.str().substr(read,android_log_max_length);
-		LOG(INFO) << substr;
-		read+=substr.length();
-	} while(read<ss.str().length());
+//	std::stringstream ss;
+//	ss << "INFO Submap" << LastSubEnt.submap_index << ": {" ;
+//	ss << "Position (" << LastSubEnt.pose.position.x << "," << LastSubEnt.pose.position.y << "," << LastSubEnt.pose.position.z << "), " ;
+//	ss << "Orientation (" << LastSubEnt.pose.orientation.w << "," << LastSubEnt.pose.orientation.x << "," << LastSubEnt.pose.orientation.y << "," << LastSubEnt.pose.orientation.z << ")" ;
+//	ss << "} \n";
+	//	int size = SubmapList.submap.size();
+	//	for(int i=0; i<size; i++ ){
+	//		::cartographer_generic_msgs::SubmapEntry subEnt = SubmapList.submap[i];
+	//		ss << "Submap" << subEnt.submap_index << ": {" ;
+	//		ss << "Position (" << subEnt.pose.position.x << "," << subEnt.pose.position.y << "," << subEnt.pose.position.z << "), " ;
+	//		ss << "Orientation (" << subEnt.pose.orientation.x << "," << subEnt.pose.orientation.y << "," << subEnt.pose.orientation.z << "," << subEnt.pose.orientation.w << ")" ;
+	//		ss << "} \n";
+	//	}
+
+	slice_pose[0] =  response.slice_pose.position.x - response.height*response.resolution/2 ;
+	slice_pose[1] =  response.slice_pose.position.y - response.width*response.resolution/2;
+	slice_pose[2] =  response.slice_pose.position.z ;
+	slice_pose[3] =  response.slice_pose.orientation.w ;
+	slice_pose[4] =  response.slice_pose.orientation.x ;
+	slice_pose[5] =  response.slice_pose.orientation.y ;
+	slice_pose[6] =  response.slice_pose.orientation.z ;
+
+//	ss << "INFO Slice_pose" << LastSubEnt.submap_index << ": {" ;
+//	ss << "Position (" << response.slice_pose.position.x << "," << response.slice_pose.position.y << "," << response.slice_pose.position.z << "), " ;
+//	ss << "Orientation (" << response.slice_pose.orientation.w << "," << response.slice_pose.orientation.x << "," << response.slice_pose.orientation.y << "," << response.slice_pose.orientation.z << ")" ;
+//	ss << "} \n";
+
+	ComposePoses(pose, submap_pose, slice_pose);
+//	ss << "INFO Pose_submap" << LastSubEnt.submap_index << ": {" ;
+//	ss << "Position (" << pose[0] << "," << pose[1] << "," << pose[2] << "), " ;
+//	ss << "Orientation (" << pose[3] << "," << pose[4] << "," << pose[5] << "," << pose[6] << ")" ;
+//	ss << "} \n";
+
+//	int read=0;
+//	std::string substr;
+//	do {
+//		substr = ss.str().substr(read,android_log_max_length);
+//		LOG(INFO) << substr;
+//		read+=substr.length();
+//	} while(read<ss.str().length());
 
 }
 
@@ -241,7 +301,7 @@ void _GetPose (Node* node, int64 time, float* pose){
 	std::stringstream ss;
 	for(int i=0 ; i<TrajectoryList.markers.size(); i++ ){
 		::cartographer_generic_msgs::Marker marker = TrajectoryList.markers.at(i);
-		ss << marker.id << ": {" ;
+		ss << "Trajectory" << marker.id << ": {" ;
 		for(int j=0; j<marker.points.size(); j++ ){
 			::cartographer_generic_msgs::Point point=marker.points.at(j);
 			ss << "(" << point.x << "," << point.y << "," << point.z << ")" ;

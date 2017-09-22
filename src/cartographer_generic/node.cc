@@ -232,7 +232,7 @@ int Node::AddTrajectory(const TrajectoryOptions& options, const cartographer_gen
 	return trajectory_id;
 }
 
-void Node::LaserScanCallback(::cartographer_generic_msgs::LaserScan::Ptr& msg, const int trajectory_id ){
+void Node::LaserScanCallback(::cartographer_generic_msgs::LaserScan::Ptr& msg, const int trajectory_id){
 //	map_builder_bridge_.sensor_bridge(trajectory_id) ->HandleLaserScanMessage(kLaserScanTopic, msg);
 	map_builder_bridge_.sensor_bridge(trajectory_id) ->HandleLaserScanMessage("scan", msg);
 }

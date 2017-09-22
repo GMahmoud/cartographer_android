@@ -35,4 +35,14 @@ std::vector<std::string> ComputeRepeatedTopicNames(const std::string& topic,
   return topics;
 }
 
+std::vector<double>  GetPoseEstimate(){
+	return pose_estimate;
+}
+
+void SetPoseEstimate(double* pose_ros){
+	pose_estimate.clear();
+	for(int i=0; i<7; i++)
+			pose_estimate.push_back(pose_ros[i]);
+}
+
 }  // namespace cartographer_generic

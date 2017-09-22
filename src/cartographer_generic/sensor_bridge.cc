@@ -128,7 +128,8 @@ void SensorBridge::HandleLaserScan(const string& sensor_id,
                                    const carto::common::Time start_time,
                                    const string& frame_id,
                                    const carto::sensor::PointCloud& points,
-                                   const double seconds_between_points) {
+                                   const double seconds_between_points
+								   ) {
   for (int i = 0; i != num_subdivisions_per_laser_scan_; ++i) {
     const size_t start_index =
         points.size() * i / num_subdivisions_per_laser_scan_;
@@ -148,7 +149,7 @@ void SensorBridge::HandleRangefinder(const string& sensor_id,
                                      const string& frame_id,
                                      const carto::sensor::PointCloud& ranges) {
   /*const auto sensor_to_tracking = tf_bridge_.LookupToTracking(time, CheckNoLeadingSlash(frame_id));*/
-  const auto sensor_to_tracking = tf_bridge_.LookupToTracking( time, frame_id);
+  const auto sensor_to_tracking = tf_bridge_.LookupToTracking(time, frame_id);
   if (sensor_to_tracking != nullptr) {
     trajectory_builder_->AddRangefinderData(
         sensor_id, time, sensor_to_tracking->translation().cast<float>(),

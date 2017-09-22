@@ -39,9 +39,15 @@ constexpr char kSubmapQueryServiceName[] = "submap_query";
 constexpr int kInfiniteSubscriberQueueSize = 0;
 constexpr int kLatestOnlyPublisherQueueSize = 1;
 
+static std::vector<double> pose_estimate;
 // For multiple topics adds numbers to the topic name and returns the list.
 std::vector<std::string> ComputeRepeatedTopicNames(const std::string& topic,
                                                    int num_topics);
+
+std::vector<double>  GetPoseEstimate();
+
+void SetPoseEstimate(double* pose_ros);
+
 
 
 }  // namespace cartographer_generic
