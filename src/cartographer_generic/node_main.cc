@@ -14,6 +14,8 @@
 #include "cartographer_generic/trajectory_options.h"
 #include "cartographer_generic_msgs/LaserScan.h"
 #include "cartographer_generic_msgs/Odometry.h"
+#include "cartographer_generic_msgs/PointCloud.h"
+#include "cartographer_generic_msgs/PointCloudIterator.h"
 #include "cartographer/mapping_2d/map_limits.h"
 #include "cartographer/mapping_2d/probability_grid.h"
 #include "cartographer_generic_msgs/SubmapQuery.h"
@@ -34,10 +36,21 @@ string configuration_basename = "buddy_lidar_2d.lua";
 //LaserScan callback message
 ::cartographer_generic_msgs::LaserScan::Ptr laser_msg;
 ::cartographer_generic_msgs::Odometry::Ptr odom_msg;
+::cartographer_generic_msgs::PointCloud::Ptr pointcloud_msg;
+::cartographer_generic_msgs::PointField::Ptr pointfield;
 
 //Current submap query response
 ::cartographer_generic_msgs::SubmapQuery::Response response;
 ::cartographer_generic_msgs::SubmapQuery::Response responseZero;
+
+double angle_min = -M_PI / 2.0;
+double angle_max =  M_PI / 2.0;
+double angle_increment =  M_PI / 360.0;
+double scan_time = 1.0 / 30.0;
+double range_min = 0.45;
+double range_max = 6.0;
+double max_height = -0.25;
+double min_height = -0.5;
 
 /*******************************************************************************
  * - Lua Configuration Load System
@@ -54,6 +67,7 @@ std::tuple<NodeOptions, TrajectoryOptions> LoadOptions() {
 			CreateTrajectoryOptions(&lua_parameter_dictionary));
 }
 
+//Pose format as [x,y,z] + quat[w,x,y,z]
 void ComposePoses(double* pose, double* pose1 , double* pose2){
 	double x1 = pose1[0];
 	double y1 = pose1[1];
@@ -106,6 +120,42 @@ Node* _Init() {
 	laser_msg->scan_time=0.0333333350718;
 	laser_msg->range_min=0.449999988079;
 	laser_msg->range_max=6.0;
+
+	pointcloud_msg.reset(new cartographer_generic_msgs::PointCloud());
+	pointcloud_msg->data.reserve(612864);
+	pointcloud_msg->header.seq = 1;
+	pointcloud_msg->header.frame_id = "buddy_tablet";
+	pointcloud_msg->height=1;
+	pointcloud_msg->width=38304;
+
+	pointfield.reset(new cartographer_generic_msgs::PointField());
+	pointfield->name = "x";
+	pointfield->offset = 0;
+	pointfield->datatype = 7;
+	pointfield->count = 1;
+	pointcloud_msg->fields.push_back(*pointfield);
+	pointfield.reset(new cartographer_generic_msgs::PointField());
+	pointfield->name = "y";
+	pointfield->offset = 4;
+	pointfield->datatype = 7;
+	pointfield->count = 1;
+	pointcloud_msg->fields.push_back(*pointfield);
+	pointfield.reset(new cartographer_generic_msgs::PointField());
+	pointfield->name = "z";
+	pointfield->offset = 8;
+	pointfield->datatype = 7;
+	pointfield->count = 1;
+	pointcloud_msg->fields.push_back(*pointfield);
+	pointfield.reset(new cartographer_generic_msgs::PointField());
+	pointfield->name = "rgb";
+	pointfield->offset = 12;
+	pointfield->datatype = 7;
+	pointfield->count = 1;
+	pointcloud_msg->fields.push_back(*pointfield);
+	pointcloud_msg->is_bigendian = 0;
+	pointcloud_msg->is_dense = 0;
+	pointcloud_msg->point_step = 16;
+	pointcloud_msg->row_step = 612864;
 	//	laser_msg->ranges.reserve(1040);
 	//	laser_msg->header.seq = 1;
 	//	laser_msg->header.frame_id = "base_laser_link";
@@ -213,6 +263,113 @@ void _OdometryCallback(Node* node, float* pose, float* pose_covariance, float* t
 	odom_msg->header.seq++;
 }
 
+void _PointCloudCallback(Node* node, int* data, int64 time)
+{
+	bool use_inf = true;
+
+	for(int i=0; i<612864; i++){ //1° definition - PointCloud data
+		pointcloud_msg->data.push_back(data[i]) ;
+	}
+
+	pointcloud_msg->header.stamp = ::cartographer::common::FromUniversal(time);
+
+	//Increment header sequence
+	pointcloud_msg->header.seq++;
+	//build laserscan scan_output
+	cartographer_generic_msgs::LaserScan::Ptr scan_output ;
+	scan_output.reset(new cartographer_generic_msgs::LaserScan());
+	scan_output->header = pointcloud_msg->header;
+	//TODO
+
+	scan_output->angle_min = angle_min;
+	scan_output->angle_max = angle_max;
+	scan_output->angle_increment = angle_increment;
+	scan_output->time_increment = 0.0;
+	scan_output->scan_time = scan_time;
+	scan_output->range_min = range_min;
+	scan_output->range_max = range_max;
+
+	LOG(INFO) << "angle_min =" << angle_min << "angle_max =" << angle_max << "angle_increment =" << angle_increment << "time_increment =" << 0.0 << "scan_time =" << scan_time
+		<< "range_min =" << range_min
+		<< "range_max =" << range_max;
+
+	//determine amount of rays to create
+	uint32_t ranges_size = std::ceil((scan_output->angle_max - scan_output->angle_min) / scan_output->angle_increment);
+
+	//determine if laserscan rays with no obstacle data will evaluate to infinity or max_range
+	if (use_inf)
+	{
+		scan_output->ranges.assign(ranges_size, std::numeric_limits<double>::infinity());
+	}
+	else
+	{
+		scan_output->ranges.assign(ranges_size, scan_output->range_max + 1.0);
+	}
+
+
+	std::stringstream ss;
+	ss << "Scan from point cloud ----------------------------------------------------------------  \n" ;
+	ss << "Scan: [" ;
+	// Iterate through pointcloud
+	for (::cartographer_generic_msgs::PointCloudIterator<float>
+			iter_x(*pointcloud_msg, "x"), iter_y(*pointcloud_msg, "y"), iter_z(*pointcloud_msg, "z");
+			iter_x != iter_x.end();
+			++iter_x, ++iter_y, ++iter_z)
+	{
+
+		if (std::isnan(*iter_x) || std::isnan(*iter_y) || std::isnan(*iter_z))
+		{
+			//LOG(INFO) << "rejected for nan in point(" << *iter_x << "," <<  *iter_y << "," <<  *iter_z << ")\n";
+			continue;
+		}
+		if (*iter_z > max_height || *iter_z < min_height)
+		{
+			//LOG(INFO) << "rejected for height " << *iter_z << " not in range (" << min_height << "," <<  max_height << ")\n" ;
+			*iter_x = 0.0;
+			*iter_y = 0.0;
+			*iter_z = 0.0;
+			continue;
+		}
+
+		double range = hypot(*iter_x, *iter_y);
+		if (range < range_min)
+		{
+			//LOG(INFO) << "rejected for range " << range <<" below minimum value " << range_min <<". Point: (" << *iter_x << "," << *iter_y << "," << *iter_z << ")";
+			continue;
+		}
+
+		double angle = atan2(*iter_y, *iter_x);
+
+
+		if (angle < scan_output->angle_min || angle > scan_output->angle_max)
+		{
+			//LOG(INFO) << "rejected for angle " << angle << " not in range (" << scan_output->angle_min << "," <<  scan_output->angle_max << ")\n" ;
+			continue;
+		}
+
+		//overwrite range at laserscan ray if new range is smaller
+		int index = (angle - scan_output->angle_min) / scan_output->angle_increment;
+		if (range < scan_output->ranges[index])
+		{
+			scan_output->ranges[index] = range;
+		}
+
+	}
+	for(int i=0; i < 360; i++){
+				ss << scan_output->ranges[i] << ", ";
+	}
+	ss <<  "], Time: " << time;
+	int read=0;
+	std::string substr;
+	do {
+		substr = ss.str().substr(read,android_log_max_length);
+		LOG(INFO) << substr;
+		read+=substr.length();
+	} while(read<ss.str().length());
+
+	node->LaserScanCallback(scan_output, trajectory_id);
+}
+
 /*******************************************************************************
  * - Submap Query/Retrieve
  * HandleSubmapQuery must be call first.
@@ -256,7 +413,7 @@ double _GetGridResolutionZero(){
 	return responseZero.cells.size()!=0 ? responseZero.resolution : -1;
 }
 
-//Pose format as [x,y,z] + quat[x,y,z,w]
+//Pose format as [x,y,z] + quat[w,x,y,z]
 void _GetSubmapPose(Node* node, double* pose)
 {
 	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
@@ -272,20 +429,6 @@ void _GetSubmapPose(Node* node, double* pose)
 	submap_pose[5] = LastSubEnt.pose.orientation.y ;
 	submap_pose[6] = LastSubEnt.pose.orientation.z ;
 
-	//	std::stringstream ss;
-	//	ss << "INFO Submap" << LastSubEnt.submap_index << ": {" ;
-	//	ss << "Position (" << LastSubEnt.pose.position.x << "," << LastSubEnt.pose.position.y << "," << LastSubEnt.pose.position.z << "), " ;
-	//	ss << "Orientation (" << LastSubEnt.pose.orientation.w << "," << LastSubEnt.pose.orientation.x << "," << LastSubEnt.pose.orientation.y << "," << LastSubEnt.pose.orientation.z << ")" ;
-	//	ss << "} \n";
-	//	int size = SubmapList.submap.size();
-	//	for(int i=0; i<size; i++ ){
-	//		::cartographer_generic_msgs::SubmapEntry subEnt = SubmapList.submap[i];
-	//		ss << "Submap" << subEnt.submap_index << ": {" ;
-	//		ss << "Position (" << subEnt.pose.position.x << "," << subEnt.pose.position.y << "," << subEnt.pose.position.z << "), " ;
-	//		ss << "Orientation (" << subEnt.pose.orientation.x << "," << subEnt.pose.orientation.y << "," << subEnt.pose.orientation.z << "," << subEnt.pose.orientation.w << ")" ;
-	//		ss << "} \n";
-	//	}
-
 	slice_pose[0] =  response.slice_pose.position.x - response.height*response.resolution/2 ;
 	slice_pose[1] =  response.slice_pose.position.y - response.width*response.resolution/2;
 	slice_pose[2] =  response.slice_pose.position.z ;
@@ -294,24 +437,7 @@ void _GetSubmapPose(Node* node, double* pose)
 	slice_pose[5] =  response.slice_pose.orientation.y ;
 	slice_pose[6] =  response.slice_pose.orientation.z ;
 
-	//	ss << "INFO Slice_pose" << LastSubEnt.submap_index << ": {" ;
-	//	ss << "Position (" << response.slice_pose.position.x << "," << response.slice_pose.position.y << "," << response.slice_pose.position.z << "), " ;
-	//	ss << "Orientation (" << response.slice_pose.orientation.w << "," << response.slice_pose.orientation.x << "," << response.slice_pose.orientation.y << "," << response.slice_pose.orientation.z << ")" ;
-	//	ss << "} \n";
-
 	ComposePoses(pose, submap_pose, slice_pose);
-	//	ss << "INFO Pose_submap" << LastSubEnt.submap_index << ": {" ;
-	//	ss << "Position (" << pose[0] << "," << pose[1] << "," << pose[2] << "), " ;
-	//	ss << "Orientation (" << pose[3] << "," << pose[4] << "," << pose[5] << "," << pose[6] << ")" ;
-	//	ss << "} \n";
-
-	//	int read=0;
-	//	std::string substr;
-	//	do {
-	//		substr = ss.str().substr(read,android_log_max_length);
-	//		LOG(INFO) << substr;
-	//		read+=substr.length();
-	//	} while(read<ss.str().length());
 
 }
 
@@ -345,29 +471,13 @@ void _GetSubmapPoseZero(Node* node, double* pose)
 //intensity and alpha channels are converted form uint8 (char) to int
 void _GetOccupancyGrid (int* intensity, int* alpha) {
 	std::stringstream ss1, ss2, ss3;
-	ss1 << "Alpha" << response.submap_version << ": [" ;
-	ss2 << "Intensity" << response.submap_version << ": [" ;
-	ss3 << "Observed" << response.submap_version << ": [" ;
 	for (int i = 0; i < response.height; ++i) {
 		for (int j = 0; j < response.width; ++j) {
 			intensity[i*response.width + j] = static_cast<int>(response.cells[(i * response.width + j) * 2]);
 			alpha[i*response.width + j] = static_cast<int>(response.cells[(i * response.width + j) * 2 + 1]);
-			uint8_t intensity = response.cells[(i * response.width + j) * 2];
-			uint8_t alpha = response.cells[(i * response.width + j) * 2 + 1];
-			uint8_t observed = (intensity == 0 && alpha == 0) ? 0 : 255;
-			ss1 << alpha << ",";
-			ss2 << intensity << ",";
-			ss3 << observed << ",";
-
-
 		}
 	}
-	ss1 << "] \n";
-	ss2 << "] \n";
-	ss3 << "] \n";
-	LOG(INFO) << ss1.str();
-	LOG(INFO) << ss2.str();
-	LOG(INFO) << ss3.str();
+
 
 }
 
@@ -387,26 +497,15 @@ void _GetOccupancyGridZero (int* intensity, int* alpha) {
 void _GetPose (Node* node, int64 time, float* pose){
 	::cartographer::common::Time time_now = ::cartographer::common::FromUniversal(time);
 	::cartographer_generic_msgs::MarkerArray TrajectoryList = node->GetTrajectoryNodeList(time_now);
-	std::stringstream ss;
 	for(int i=0 ; i<TrajectoryList.markers.size(); i++ ){
 		::cartographer_generic_msgs::Marker marker = TrajectoryList.markers.at(i);
-		ss << "Trajectory" << marker.id << ": {" ;
 		for(int j=0; j<marker.points.size(); j++ ){
 			::cartographer_generic_msgs::Point point=marker.points.at(j);
-			ss << "(" << point.x << "," << point.y << "," << point.z << ")" ;
 			pose[0] = point.x;
 			pose[1] = point.y;
 			pose[2] = point.z;
 		}
-		ss << "} \n";
 	}
-	//	int read=0;
-	//	std::string substr;
-	//	do {
-	//		substr = ss.str().substr(read,android_log_max_length);
-	//		LOG(INFO) << substr;
-	//		read+=substr.length();
-	//	} while(read<ss.str().length());
 }
 
 }  // namespace cartographer_generic
