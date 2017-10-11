@@ -40,8 +40,7 @@ string configuration_basename = "buddy_lidar_2d.lua";
 ::cartographer_generic_msgs::PointField::Ptr pointfield;
 
 //Current submap query response
-::cartographer_generic_msgs::SubmapQuery::Response response;
-::cartographer_generic_msgs::SubmapQuery::Response responseZero;
+std::vector<::cartographer_generic_msgs::SubmapQuery::Response> responses;
 
 double angle_min = -M_PI / 2.0;
 double angle_max =  M_PI / 2.0;
@@ -204,10 +203,9 @@ void _Stop (Node* node) {
 /*******************************************************************************
  * - Main callback handler : LaserScan, Odometry, IMU...
  ********************************************************************************/
-void _LaserScanCallback(Node* node, float* ranges, int64 time, double* pose_ros) {
+void _LaserScanCallback(Node* node, float* ranges, int64 time) {
 	laser_msg->ranges.clear(); //clear does not resize
 	counter ++;
-	//if(counter > 10) LOG(FATAL)<< "STOP";
 	std::stringstream ss;
 	ss << "Scan ----------------------------------------------------------------  " << counter << "\n" ;
 	ss << "Scan: [" ;
@@ -220,7 +218,6 @@ void _LaserScanCallback(Node* node, float* ranges, int64 time, double* pose_ros)
 	LOG(INFO) << ss.str();
 	//Convert time ticks in common time
 	laser_msg->header.stamp = ::cartographer::common::FromUniversal(time);
-	//cartographer_generic::SetPoseEstimate(pose_ros);
 	node->LaserScanCallback(laser_msg, trajectory_id);
 	//Increment header sequence
 	laser_msg->header.seq++;
@@ -290,8 +287,8 @@ void _PointCloudCallback(Node* node, int* data, int64 time)
 	scan_output->range_max = range_max;
 
 	LOG(INFO) << "angle_min =" << angle_min << "angle_max =" << angle_max << "angle_increment =" << angle_increment << "time_increment =" << 0.0 << "scan_time =" << scan_time
-		<< "range_min =" << range_min
-		<< "range_max =" << range_max;
+			<< "range_min =" << range_min
+			<< "range_max =" << range_max;
 
 	//determine amount of rays to create
 	uint32_t ranges_size = std::ceil((scan_output->angle_max - scan_output->angle_min) / scan_output->angle_increment);
@@ -356,7 +353,7 @@ void _PointCloudCallback(Node* node, int* data, int64 time)
 
 	}
 	for(int i=0; i < 360; i++){
-				ss << scan_output->ranges[i] << ", ";
+		ss << scan_output->ranges[i] << ", ";
 	}
 	ss <<  "], Time: " << time;
 	int read=0;
@@ -377,118 +374,92 @@ void _PointCloudCallback(Node* node, int* data, int64 time)
 int _HandleSubmapQuery(Node* node){
 	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
 	::cartographer_generic_msgs::SubmapQuery::Request request;
+	::cartographer_generic_msgs::SubmapQuery::Response response;
 	request.submap_index = SubmapList.submap.back().submap_index;
+	LOG(INFO) << "request.submap_index = " << request.submap_index;
 	request.trajectory_id = trajectory_id;
 	response.cells.clear();
 	node->HandleSubmapQuery(request,response);
+
+	if(responses.size() < SubmapList.submap.size()){
+		responses.push_back(response);
+		LOG(INFO) << "Add new response " << request.submap_index << " to queries";
+	}
+	else{
+		responses[request.submap_index] = response;
+		LOG(INFO) << "Update response " << request.submap_index;
+	}
+
 	return request.submap_index;
 }
 
-int _HandleSubmapQueryZero(Node* node){
+void _UpdateSubmap(Node* node, int submap_index ){
 	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
 	::cartographer_generic_msgs::SubmapQuery::Request request;
-	request.submap_index = 0;
+	::cartographer_generic_msgs::SubmapQuery::Response response;
+	request.submap_index = submap_index;
 	request.trajectory_id = trajectory_id;
-	responseZero.cells.clear();
-	node->HandleSubmapQuery(request,responseZero);
-	return request.submap_index;
+	response.cells.clear();
+	node->HandleSubmapQuery(request,response);
+	responses[submap_index] = response;
+	LOG(INFO) << "Last update response " << submap_index;
 }
+
 
 //Retrieve grid size (Unity should handle most of memory allocation)
 // response.cells.size() = width * height * 2 (intensity and alpha channels)
-void _GetGridSize(int* size){
-	size[0] = response.cells.size()!=0 ? response.width : -1;
-	size[1] = response.cells.size()!=0 ? response.height : -1;
+void _GetGridSize(int* size, int submap_index){
+	size[0] = responses[submap_index].cells.size()!=0 ? responses[submap_index].width : -1;
+	size[1] = responses[submap_index].cells.size()!=0 ? responses[submap_index].height : -1;
 }
 
-void _GetGridSizeZero(int* size){
-	size[0] = responseZero.cells.size()!=0 ? responseZero.width : -1;
-	size[1] = responseZero.cells.size()!=0 ? responseZero.height : -1;
-}
-double _GetGridResolution(){
-	return response.cells.size()!=0 ? response.resolution : -1;
+
+double _GetGridResolution(int submap_index){
+	return responses[submap_index].cells.size()!=0 ? responses[submap_index].resolution : -1;
 }
 
-double _GetGridResolutionZero(){
-	return responseZero.cells.size()!=0 ? responseZero.resolution : -1;
-}
 
 //Pose format as [x,y,z] + quat[w,x,y,z]
-void _GetSubmapPose(Node* node, double* pose)
+void _GetSubmapPose(Node* node, double* pose, int submap_index)
 {
 	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
-	::cartographer_generic_msgs::SubmapEntry LastSubEnt = SubmapList.submap.back();
+	::cartographer_generic_msgs::SubmapEntry SubEnt = SubmapList.submap[submap_index];
 
 	double slice_pose[7];
 	double submap_pose[7];
-	submap_pose[0] = LastSubEnt.pose.position.x ;
-	submap_pose[1] = LastSubEnt.pose.position.y ;
-	submap_pose[2] = LastSubEnt.pose.position.z ;
-	submap_pose[3] = LastSubEnt.pose.orientation.w ;
-	submap_pose[4] = LastSubEnt.pose.orientation.x ;
-	submap_pose[5] = LastSubEnt.pose.orientation.y ;
-	submap_pose[6] = LastSubEnt.pose.orientation.z ;
+	submap_pose[0] = SubEnt.pose.position.x ;
+	submap_pose[1] = SubEnt.pose.position.y ;
+	submap_pose[2] = SubEnt.pose.position.z ;
+	submap_pose[3] = SubEnt.pose.orientation.w ;
+	submap_pose[4] = SubEnt.pose.orientation.x ;
+	submap_pose[5] = SubEnt.pose.orientation.y ;
+	submap_pose[6] = SubEnt.pose.orientation.z ;
 
-	slice_pose[0] =  response.slice_pose.position.x - response.height*response.resolution/2 ;
-	slice_pose[1] =  response.slice_pose.position.y - response.width*response.resolution/2;
-	slice_pose[2] =  response.slice_pose.position.z ;
-	slice_pose[3] =  response.slice_pose.orientation.w ;
-	slice_pose[4] =  response.slice_pose.orientation.x ;
-	slice_pose[5] =  response.slice_pose.orientation.y ;
-	slice_pose[6] =  response.slice_pose.orientation.z ;
+	slice_pose[0] =  responses[submap_index].slice_pose.position.x - responses[submap_index].height*responses[submap_index].resolution/2 ;
+	slice_pose[1] =  responses[submap_index].slice_pose.position.y - responses[submap_index].width*responses[submap_index].resolution/2;
+	slice_pose[2] =  responses[submap_index].slice_pose.position.z ;
+	slice_pose[3] =  responses[submap_index].slice_pose.orientation.w ;
+	slice_pose[4] =  responses[submap_index].slice_pose.orientation.x ;
+	slice_pose[5] =  responses[submap_index].slice_pose.orientation.y ;
+	slice_pose[6] =  responses[submap_index].slice_pose.orientation.z ;
 
 	ComposePoses(pose, submap_pose, slice_pose);
 
 }
 
-void _GetSubmapPoseZero(Node* node, double* pose)
-{
-	::cartographer_generic_msgs::SubmapList SubmapList = node->GetSubmapList();
-	::cartographer_generic_msgs::SubmapEntry ZeroSubEnt = SubmapList.submap[0];
-
-	double slice_pose[7];
-	double submap_pose[7];
-	submap_pose[0] = ZeroSubEnt.pose.position.x ;
-	submap_pose[1] = ZeroSubEnt.pose.position.y ;
-	submap_pose[2] = ZeroSubEnt.pose.position.z ;
-	submap_pose[3] = ZeroSubEnt.pose.orientation.w ;
-	submap_pose[4] = ZeroSubEnt.pose.orientation.x ;
-	submap_pose[5] = ZeroSubEnt.pose.orientation.y ;
-	submap_pose[6] = ZeroSubEnt.pose.orientation.z ;
-
-	slice_pose[0] =  responseZero.slice_pose.position.x - responseZero.height*responseZero.resolution/2 ;
-	slice_pose[1] =  responseZero.slice_pose.position.y - responseZero.width*responseZero.resolution/2;
-	slice_pose[2] =  responseZero.slice_pose.position.z ;
-	slice_pose[3] =  responseZero.slice_pose.orientation.w ;
-	slice_pose[4] =  responseZero.slice_pose.orientation.x ;
-	slice_pose[5] =  responseZero.slice_pose.orientation.y ;
-	slice_pose[6] =  responseZero.slice_pose.orientation.z ;
-
-	ComposePoses(pose, submap_pose, slice_pose);
-}
 
 //Retrieve occupancy grid
 //intensity and alpha channels are converted form uint8 (char) to int
-void _GetOccupancyGrid (int* intensity, int* alpha) {
+void _GetOccupancyGrid (int* intensity, int* alpha, int submap_index) {
 	std::stringstream ss1, ss2, ss3;
-	for (int i = 0; i < response.height; ++i) {
-		for (int j = 0; j < response.width; ++j) {
-			intensity[i*response.width + j] = static_cast<int>(response.cells[(i * response.width + j) * 2]);
-			alpha[i*response.width + j] = static_cast<int>(response.cells[(i * response.width + j) * 2 + 1]);
+	for (int i = 0; i < responses[submap_index].height; ++i) {
+		for (int j = 0; j < responses[submap_index].width; ++j) {
+			intensity[i*responses[submap_index].width + j] = static_cast<int>(responses[submap_index].cells[(i * responses[submap_index].width + j) * 2]);
+			alpha[i*responses[submap_index].width + j] = static_cast<int>(responses[submap_index].cells[(i * responses[submap_index].width + j) * 2 + 1]);
 		}
 	}
 
 
-}
-
-void _GetOccupancyGridZero (int* intensity, int* alpha) {
-
-	for (int i = 0; i < responseZero.height; ++i) {
-		for (int j = 0; j < responseZero.width; ++j) {
-			intensity[i*responseZero.width + j] = static_cast<int>(responseZero.cells[(i * responseZero.width + j) * 2]);
-			alpha[i*responseZero.width + j] = static_cast<int>(responseZero.cells[(i * responseZero.width + j) * 2 + 1]);
-		}
-	}
 }
 
 /*******************************************************************************
