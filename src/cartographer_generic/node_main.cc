@@ -8,6 +8,7 @@
 #include "cartographer/common/make_unique.h"
 #include "cartographer/common/port.h"
 #include "cartographer/common/time.h"
+#include "cartographer/transform/rigid_transform.h"
 #include "cartographer_generic/node.h"
 #include "cartographer_generic/node_options.h"
 #include "cartographer_generic/buddy_lidar_2d.lua.h"
@@ -405,7 +406,6 @@ void _UpdateSubmap(Node* node, int submap_index ){
 	LOG(INFO) << "Last update response " << submap_index;
 }
 
-
 //Retrieve grid size (Unity should handle most of memory allocation)
 // response.cells.size() = width * height * 2 (intensity and alpha channels)
 void _GetGridSize(int* size, int submap_index){
@@ -413,11 +413,9 @@ void _GetGridSize(int* size, int submap_index){
 	size[1] = responses[submap_index].cells.size()!=0 ? responses[submap_index].height : -1;
 }
 
-
 double _GetGridResolution(int submap_index){
 	return responses[submap_index].cells.size()!=0 ? responses[submap_index].resolution : -1;
 }
-
 
 //Pose format as [x,y,z] + quat[w,x,y,z]
 void _GetSubmapPose(Node* node, double* pose, int submap_index)
@@ -458,47 +456,50 @@ void _GetOccupancyGrid (int* intensity, int* alpha, int submap_index) {
 			alpha[i*responses[submap_index].width + j] = static_cast<int>(responses[submap_index].cells[(i * responses[submap_index].width + j) * 2 + 1]);
 		}
 	}
-
-
 }
 
 /*******************************************************************************
- * - Trajectory Query/Retrieve
+ * - RobotPose format is [x,y,z] + quat[w,x,y,z]
  ********************************************************************************/
-void _GetPose (Node* node, int64 time, float* pose){
+void _GetRobotPose (Node* node, int64 time, float* robot_pose){
 	::cartographer::common::Time time_now = ::cartographer::common::FromUniversal(time);
 	::cartographer_generic_msgs::MarkerArray TrajectoryList = node->GetTrajectoryNodeList(time_now);
-	for(int i=0 ; i<TrajectoryList.markers.size(); i++ ){
-		::cartographer_generic_msgs::Marker marker = TrajectoryList.markers.at(i);
-		for(int j=0; j<marker.points.size(); j++ ){
-			::cartographer_generic_msgs::Point point=marker.points.at(j);
-			pose[0] = point.x;
-			pose[1] = point.y;
-			pose[2] = point.z;
-		}
+	if (TrajectoryList.markers.size() == 0){
+		robot_pose[0] = 0.0;
+		robot_pose[1] = 0.0;
+		robot_pose[2] = 0.0;
+		robot_pose[3] = 1.0;
+		robot_pose[4] = 0.0;
+		robot_pose[5] = 0.0;
+		robot_pose[6] = 0.0;
+	}
+	else{
+		::cartographer_generic_msgs::Marker marker = TrajectoryList.markers.back();
+		::cartographer_generic_msgs::Pose pose=marker.poses.back();
+		robot_pose[0] = pose.position.x;
+		robot_pose[1] = pose.position.y;
+		robot_pose[2] = pose.position.z;
+		robot_pose[3] = pose.orientation.w;
+		robot_pose[4] = pose.orientation.x;
+		robot_pose[5] = pose.orientation.y;
+		robot_pose[6] = pose.orientation.z;
 	}
 }
+
+//void _GetRobotPose (Node* node, float* robot_pose){
+//	cartographer::transform::Rigid3d transform = node->GetTrajectoryStates();
+//
+//	robot_pose[0] = transform.translation().x();
+//	robot_pose[1] = transform.translation().y();
+//	robot_pose[2] = transform.translation().z();
+//	robot_pose[3] = transform.rotation().w();
+//	robot_pose[4] = transform.rotation().x();
+//	robot_pose[5] = transform.rotation().y();
+//	robot_pose[6] = transform.rotation().z();
+//
+//}
 
 }  // namespace cartographer_generic
 }  // extern "C"
 
-
-//int main(int argc, char** argv) {
-//	google::InitGoogleLogging(argv[0]);
-//	google::ParseCommandLineFlags(&argc, &argv, true);
-//
-//	CHECK(!FLAGS_configuration_directory.empty())
-//	<< "-configuration_directory is missing.";
-//	CHECK(!FLAGS_configuration_basename.empty())
-//	<< "-configuration_basename is missing.";
-//
-//	//TODO
-//	//	::ros::init(argc, argv, "cartographer_node");
-//	//	::ros::start();
-//
-//	cartographer_generic::Run();
-//
-//	//TODO
-//	//	::ros::shutdown();
-//}
 #endif

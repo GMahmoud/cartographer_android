@@ -43,9 +43,9 @@ namespace carto = ::cartographer;
 
 using carto::transform::Rigid3d;
 
-Node::Node(const NodeOptions& node_options/*, tf2_ros::Buffer* const tf_buffer*/)
+Node::Node(const NodeOptions& node_options)
 : node_options_(node_options),
-  map_builder_bridge_(node_options_/*, tf_buffer*/) {
+  map_builder_bridge_(node_options_) {
 	carto::common::MutexLocker lock(&mutex_);
 
 	// TODO Outputs
@@ -88,6 +88,23 @@ MapBuilderBridge* Node::map_builder_bridge() { return &map_builder_bridge_; }
 	return SubmapList;
 }
 
+void Node::AddExtrapolator(const int trajectory_id,
+                           const TrajectoryOptions& options) {
+  constexpr double kExtrapolationEstimationTimeSec = 0.001;  // 1 ms
+  CHECK(extrapolators_.count(trajectory_id) == 0);
+  const double gravity_time_constant =
+      node_options_.map_builder_options.use_trajectory_builder_3d()
+          ? options.trajectory_builder_options.trajectory_builder_3d_options()
+                .imu_gravity_time_constant()
+          : options.trajectory_builder_options.trajectory_builder_2d_options()
+                .imu_gravity_time_constant();
+  extrapolators_.emplace(
+      std::piecewise_construct, std::forward_as_tuple(trajectory_id),
+      std::forward_as_tuple(
+          ::cartographer::common::FromSeconds(kExtrapolationEstimationTimeSec),
+          gravity_time_constant));
+}
+
 cartographer_generic_msgs::MarkerArray Node::GetTrajectoryNodeList(::cartographer::common::Time time) {
 	carto::common::MutexLocker lock(&mutex_);
 	cartographer_generic_msgs::MarkerArray TrajectoryList = map_builder_bridge_.GetTrajectoryNodeList(time);
@@ -101,12 +118,6 @@ bool Node::HandleSubmapQuery(
   return map_builder_bridge_.HandleSubmapQuery(request, response);
 }
 
-//TODO OUTPUTS
-//void Node::PublishSubmapList(const ::ros::WallTimerEvent& unused_timer_event) {
-//	carto::common::MutexLocker lock(&mutex_);
-//	submap_list_publisher_.publish(map_builder_bridge_.GetSubmapList());
-//}
-//
 //::cartographer::mapping::PoseExtrapolator* Node::GetExtrapolator(
 //		int trajectory_id) {
 //	constexpr double kExtrapolationEstimationTimeSec = 0.001;  // 1 ms
@@ -118,78 +129,25 @@ bool Node::HandleSubmapQuery(
 //	}
 //	return &extrapolators_.at(trajectory_id);
 //}
-//
-//void Node::PublishTrajectoryStates(const ::ros::WallTimerEvent& timer_event) {
+
+
+//cartographer::transform::Rigid3d Node::GetTrajectoryStates() {
 //	carto::common::MutexLocker lock(&mutex_);
+//	cartographer::transform::Rigid3d transform;
 //	for (const auto& entry : map_builder_bridge_.GetTrajectoryStates()) {
 //		const auto& trajectory_state = entry.second;
 //
-//		auto& extrapolator = *GetExtrapolator(entry.first);
+//		 auto& extrapolator = extrapolators_.at(entry.first);
 //		// We only publish a point cloud if it has changed. It is not needed at high
 //		// frequency, and republishing it would be computationally wasteful.
 //		if (trajectory_state.pose_estimate.time != extrapolator.GetLastPoseTime()) {
-//			scan_matched_point_cloud_publisher_.publish(ToPointCloud2Message(
-//					carto::common::ToUniversal(trajectory_state.pose_estimate.time),
-//					node_options_.map_frame,
-//					carto::sensor::TransformPointCloud(
-//							trajectory_state.pose_estimate.point_cloud,
-//							trajectory_state.local_to_map.cast<float>())));
 //			extrapolator.AddPose(trajectory_state.pose_estimate.time,
 //					trajectory_state.pose_estimate.pose);
+//		transform = trajectory_state.pose_estimate.pose;
 //		}
 //
-//		geometry_msgs::TransformStamped stamped_transform;
-//		// If we do not publish a new point cloud, we still allow time of the
-//		// published poses to advance. If we already know a newer pose, we use its
-//		// time instead. Since tf knows how to interpolate, providing newer
-//		// information is better.
-//		const ::cartographer::common::Time now =
-//				std::max(FromRos(ros::Time::now()), extrapolator.GetLastPoseTime());
-//		stamped_transform.header.stamp = ToRos(now);
-//		const Rigid3d tracking_to_local = extrapolator.ExtrapolatePose(now);
-//		const Rigid3d tracking_to_map =
-//				trajectory_state.local_to_map * tracking_to_local;
-//
-//		if (trajectory_state.published_to_tracking != nullptr) {
-//			if (trajectory_state.trajectory_options.provide_odom_frame) {
-//				std::vector<geometry_msgs::TransformStamped> stamped_transforms;
-//
-//				stamped_transform.header.frame_id = node_options_.map_frame;
-//				stamped_transform.child_frame_id =
-//						trajectory_state.trajectory_options.odom_frame;
-//				stamped_transform.transform =
-//						ToGeometryMsgTransform(trajectory_state.local_to_map);
-//				stamped_transforms.push_back(stamped_transform);
-//
-//				stamped_transform.header.frame_id =
-//						trajectory_state.trajectory_options.odom_frame;
-//				stamped_transform.child_frame_id =
-//						trajectory_state.trajectory_options.published_frame;
-//				stamped_transform.transform = ToGeometryMsgTransform(
-//						tracking_to_local * (*trajectory_state.published_to_tracking));
-//				stamped_transforms.push_back(stamped_transform);
-//
-//				tf_broadcaster_.sendTransform(stamped_transforms);
-//			} else {
-//				stamped_transform.header.frame_id = node_options_.map_frame;
-//				stamped_transform.child_frame_id =
-//						trajectory_state.trajectory_options.published_frame;
-//				stamped_transform.transform = ToGeometryMsgTransform(
-//						tracking_to_map * (*trajectory_state.published_to_tracking));
-//				tf_broadcaster_.sendTransform(stamped_transform);
-//			}
-//		}
 //	}
-//}
-//
-
-//
-//void Node::PublishConstraintList(
-//		const ::ros::WallTimerEvent& unused_timer_event) {
-//	carto::common::MutexLocker lock(&mutex_);
-//	if (constraint_list_publisher_.getNumSubscribers() > 0) {
-//		constraint_list_publisher_.publish(map_builder_bridge_.GetConstraintList());
-//	}
+//	return transform;
 //}
 
 std::unordered_set<string> Node::ComputeExpectedTopics(
@@ -227,101 +185,24 @@ std::unordered_set<string> Node::ComputeExpectedTopics(
 int Node::AddTrajectory(const TrajectoryOptions& options, const cartographer_generic_msgs::SensorTopics& topics) {
 	const std::unordered_set<string> expected_sensor_ids = ComputeExpectedTopics(options, topics);
 	const int trajectory_id = map_builder_bridge_.AddTrajectory(expected_sensor_ids, options);
-	//LaunchSubscribers(options, topics, trajectory_id);
-	//subscribed_topics_.insert(expected_sensor_ids.begin(), expected_sensor_ids.end());
+	AddExtrapolator(trajectory_id, options);
+	is_active_trajectory_[trajectory_id] = true;
 	return trajectory_id;
 }
 
 void Node::LaserScanCallback(::cartographer_generic_msgs::LaserScan::Ptr& msg, const int trajectory_id){
-//	map_builder_bridge_.sensor_bridge(trajectory_id) ->HandleLaserScanMessage(kLaserScanTopic, msg);
 	map_builder_bridge_.sensor_bridge(trajectory_id) ->HandleLaserScanMessage("scan", msg);
 }
 
 void Node::OdometryCallback( ::cartographer_generic_msgs::Odometry::Ptr& msg, const int trajectory_id ){
-//	map_builder_bridge_.sensor_bridge(trajectory_id) ->HandleOdometryMessage(kOdometryTopic, msg);
-	map_builder_bridge_.sensor_bridge(trajectory_id) ->HandleOdometryMessage("odom", msg);
+	  carto::common::MutexLocker lock(&mutex_);
+	  auto sensor_bridge_ptr = map_builder_bridge_.sensor_bridge(trajectory_id);
+	  auto odometry_data_ptr = sensor_bridge_ptr->ToOdometryData(msg);
+	  if (odometry_data_ptr != nullptr) {
+	    extrapolators_.at(trajectory_id).AddOdometryData(*odometry_data_ptr);
+	  }
+	  sensor_bridge_ptr->HandleOdometryMessage("odom", msg);
 }
-
-
-//TODO INPUTS
-//void Node::LaunchSubscribers(const TrajectoryOptions& options,
-//		const cartographer_generic_msgs::SensorTopics& topics,
-//		const int trajectory_id) {
-//	for (const string& topic : ComputeRepeatedTopicNames(
-//			topics.laser_scan_topic, options.num_laser_scans)) {
-//		subscribers_[trajectory_id].push_back(
-//				node_handle_.subscribe<sensor_msgs::LaserScan>(
-//						topic, kInfiniteSubscriberQueueSize,
-//						boost::function<void(const sensor_msgs::LaserScan::ConstPtr&)>(
-//								[this, trajectory_id,
-//								 topic](const sensor_msgs::LaserScan::ConstPtr& msg) {
-//			map_builder_bridge_.sensor_bridge(trajectory_id)
-//                    						  ->HandleLaserScanMessage(topic, msg);
-//		})));
-//	}
-//	//	for (const string& topic :
-//	//			ComputeRepeatedTopicNames(topics.multi_echo_laser_scan_topic,
-//	//					options.num_multi_echo_laser_scans)) {
-//	//		subscribers_[trajectory_id].push_back(node_handle_.subscribe<
-//	//				sensor_msgs::MultiEchoLaserScan>(
-//	//						topic, kInfiniteSubscriberQueueSize,
-//	//						boost::function<void(const sensor_msgs::MultiEchoLaserScan::ConstPtr&)>(
-//	//								[this, trajectory_id,
-//	//								 topic](const sensor_msgs::MultiEchoLaserScan::ConstPtr& msg) {
-//	//			map_builder_bridge_.sensor_bridge(trajectory_id)
-//	//                		  ->HandleMultiEchoLaserScanMessage(topic, msg);
-//	//		})));
-//	//	}
-//	//	for (const string& topic : ComputeRepeatedTopicNames(
-//	//			topics.point_cloud2_topic, options.num_point_clouds)) {
-//	//		subscribers_[trajectory_id].push_back(node_handle_.subscribe(
-//	//				topic, kInfiniteSubscriberQueueSize,
-//	//				boost::function<void(const sensor_msgs::PointCloud2::ConstPtr&)>(
-//	//						[this, trajectory_id,
-//	//						 topic](const sensor_msgs::PointCloud2::ConstPtr& msg) {
-//	//			map_builder_bridge_.sensor_bridge(trajectory_id)
-//	//                		  ->HandlePointCloud2Message(topic, msg);
-//	//		})));
-//	//	}
-//
-//	// For 2D SLAM, subscribe to the IMU if we expect it. For 3D SLAM, the IMU is
-//	// required.
-//	//	if (node_options_.map_builder_options.use_trajectory_builder_3d() ||
-//	//			(node_options_.map_builder_options.use_trajectory_builder_2d() &&
-//	//					options.trajectory_builder_options.trajectory_builder_2d_options()
-//	//					.use_imu_data())) {
-//	//		string topic = topics.imu_topic;
-//	//		subscribers_[trajectory_id].push_back(
-//	//				node_handle_.subscribe<sensor_msgs::Imu>(
-//	//						topic, kInfiniteSubscriberQueueSize,
-//	//						boost::function<void(const sensor_msgs::Imu::ConstPtr&)>(
-//	//								[this, trajectory_id,
-//	//								 topic](const sensor_msgs::Imu::ConstPtr& msg) {
-//	//			auto sensor_bridge_ptr =
-//	//					map_builder_bridge_.sensor_bridge(trajectory_id);
-//	//			sensor_bridge_ptr->HandleImuMessage(topic, msg);
-//	//			auto imu_data_ptr = sensor_bridge_ptr->ToImuData(msg);
-//	//			if (imu_data_ptr != nullptr) {
-//	//				GetExtrapolator(trajectory_id)->AddImuData(*imu_data_ptr);
-//	//			}
-//	//		})));
-//	//	}
-//
-//	if (options.use_odometry) {
-//		string topic = topics.odometry_topic;
-//		subscribers_[trajectory_id].push_back(
-//				node_handle_.subscribe<nav_msgs::Odometry>(
-//						topic, kInfiniteSubscriberQueueSize,
-//						boost::function<void(const nav_msgs::Odometry::ConstPtr&)>(
-//								[this, trajectory_id,
-//								 topic](const nav_msgs::Odometry::ConstPtr& msg) {
-//			map_builder_bridge_.sensor_bridge(trajectory_id)
-//                    						  ->HandleOdometryMessage(topic, msg);
-//		})));
-//	}
-//
-//	is_active_trajectory_[trajectory_id] = true;
-//}
 
 
 int Node::StartTrajectory(const TrajectoryOptions& options) {

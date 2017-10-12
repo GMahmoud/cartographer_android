@@ -112,6 +112,35 @@ cartographer_generic_msgs::SubmapQuery::Response& response) {
   return true;
 }
 
+std::unordered_map<int, MapBuilderBridge::TrajectoryState>
+MapBuilderBridge::GetTrajectoryStates() {
+  std::unordered_map<int, TrajectoryState> trajectory_states;
+  for (const auto& entry : sensor_bridges_) {
+    const int trajectory_id = entry.first;
+    const SensorBridge& sensor_bridge = *entry.second;
+
+    const cartographer::mapping::TrajectoryBuilder* const trajectory_builder =
+        map_builder_.GetTrajectoryBuilder(trajectory_id);
+    const cartographer::mapping::TrajectoryBuilder::PoseEstimate pose_estimate =
+        trajectory_builder->pose_estimate();
+    if (cartographer::common::ToUniversal(pose_estimate.time) < 0) {
+      continue;
+    }
+
+    // Make sure there is a trajectory with 'trajectory_id'.
+    CHECK_EQ(trajectory_options_.count(trajectory_id), 1);
+    trajectory_states[trajectory_id] = {
+        pose_estimate,
+        map_builder_.sparse_pose_graph()->GetLocalToGlobalTransform(
+            trajectory_id),
+        sensor_bridge.tf_bridge().LookupToTracking(
+            pose_estimate.time,
+            trajectory_options_[trajectory_id].published_frame),
+        trajectory_options_[trajectory_id]};
+  }
+  return trajectory_states;
+}
+
 SensorBridge* MapBuilderBridge::sensor_bridge(const int trajectory_id) {
   return sensor_bridges_.at(trajectory_id).get();
 }
@@ -140,17 +169,17 @@ cartographer_generic_msgs::MarkerArray MapBuilderBridge::GetTrajectoryNodeList(:
       // node.constant_data->tracking_to_pose would give the full orientation,
       // but that is not needed here since we are only interested in the
       // translational part.
-      const ::cartographer_generic_msgs::Point node_point =
-          ToGeometryMsgPoint(node.pose.translation());
-      marker.points.push_back(node_point);
+      const ::cartographer_generic_msgs::Pose node_pose =
+          ToGeometryMsgPose(node.pose);
+      marker.poses.push_back(node_pose);
       // Work around the 16384 point limit in RViz by splitting the
       // trajectory into multiple markers.
-      if (marker.points.size() == 16384) {
+      if (marker.poses.size() == 16384) {
         trajectory_node_list.markers.push_back(marker);
         marker.id = marker_id++;
-        marker.points.clear();
+        marker.poses.clear();
         // Push back the last point, so the two markers appear connected.
-        marker.points.push_back(node_point);
+        marker.poses.push_back(node_pose);
       }
     }
     trajectory_node_list.markers.push_back(marker);

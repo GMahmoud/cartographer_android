@@ -42,7 +42,7 @@ class MapBuilderBridge {
   bool HandleSubmapQuery(cartographer_generic_msgs::SubmapQuery::Request& request,
 		  cartographer_generic_msgs::SubmapQuery::Response& response);
 
-  //std::unordered_map<int, TrajectoryState> GetTrajectoryStates();
+  std::unordered_map<int, TrajectoryState> GetTrajectoryStates();
   cartographer_generic_msgs::MarkerArray GetTrajectoryNodeList(::cartographer::common::Time time);
   //visualization_msgs::MarkerArray GetConstraintList();
 

@@ -27,14 +27,13 @@ using carto::transform::Rigid3d;
 
 namespace {
 
-//const string& CheckNoLeadingSlash(const string& frame_id) {
-//  if (frame_id.size() > 0) {
-//    CHECK_NE(frame_id[0], '/') << "The frame_id " << frame_id
-//                               << " should not start with a /. See 1.7 in "
-//                                  "http://wiki.ros.org/tf2/Migration.";
-//  }
-//  return frame_id;
-//}
+const string& CheckNoLeadingSlash(const string& frame_id) {
+  if (frame_id.size() > 0) {
+    CHECK_NE(frame_id[0], '/') << "The frame_id " << frame_id
+                               << " should not start with a /. ";
+  }
+  return frame_id;
+}
 
 }  // namespace
 
@@ -45,6 +44,20 @@ SensorBridge::SensorBridge(
     : num_subdivisions_per_laser_scan_(num_subdivisions_per_laser_scan),
       tf_bridge_(tracking_frame, lookup_transform_timeout_sec/*, tf_buffer*/),
       trajectory_builder_(trajectory_builder) {}
+
+std::unique_ptr<::cartographer::sensor::OdometryData>
+SensorBridge::ToOdometryData(::cartographer_generic_msgs::Odometry::Ptr& msg) {
+  const carto::common::Time time = msg->header.stamp;
+  const auto sensor_to_tracking = tf_bridge_.LookupToTracking(
+      time, CheckNoLeadingSlash(msg->child_frame_id));
+  if (sensor_to_tracking == nullptr) {
+    return nullptr;
+  }
+  return ::cartographer::common::make_unique<
+      ::cartographer::sensor::OdometryData>(
+      ::cartographer::sensor::OdometryData{
+          time, ToRigid3d(msg->pose.pose) * sensor_to_tracking->inverse()});
+}
 
 void SensorBridge::HandleOdometryMessage(
     const string& sensor_id, ::cartographer_generic_msgs::Odometry::Ptr& msg) {

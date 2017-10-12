@@ -8,7 +8,6 @@
 #include "cartographer_generic_msgs/Header.h"
 #include "cartographer_generic_msgs/Pose.h"
 #include "cartographer_generic_msgs/Vector3.h"
-#include "cartographer_generic_msgs/Point.h"
 
 namespace cartographer_generic_msgs
 {
@@ -24,7 +23,7 @@ struct Marker
 	, action(0)
 	, pose()
 	, scale()
-	, points()
+	, poses()
 
 	{
 	}
@@ -36,7 +35,7 @@ struct Marker
 	int32_t action;
 	Pose pose;
 	Vector3 scale;
-	std::vector< Point>  points;
+	std::vector< Pose>  poses;
 
 	typedef boost::shared_ptr< ::cartographer_generic_msgs::Marker> Ptr;
 	typedef boost::shared_ptr< ::cartographer_generic_msgs::Marker const> ConstPtr;

@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "cartographer/common/mutex.h"
-//#include "cartographer/mapping/pose_extrapolator.h"
+#include "cartographer/mapping/pose_extrapolator.h"
 #include "cartographer_generic/node_constants.h"
 #include "cartographer_generic/node_options.h"
 #include "cartographer_generic/trajectory_options.h"
@@ -63,6 +63,7 @@ public:
 	MapBuilderBridge* map_builder_bridge();
 	::cartographer_generic_msgs::SubmapList GetSubmapList();
 	::cartographer_generic_msgs::MarkerArray GetTrajectoryNodeList(::cartographer::common::Time time);
+	cartographer::transform::Rigid3d GetTrajectoryStates();
 
 	bool HandleSubmapQuery(
 	    ::cartographer_generic_msgs::SubmapQuery::Request& request,
@@ -76,10 +77,9 @@ private:
 			const cartographer_generic_msgs::SensorTopics& topics);
 	int AddTrajectory(const TrajectoryOptions& options,
 			const cartographer_generic_msgs::SensorTopics& topics);
-
+	void AddExtrapolator(int trajectory_id, const TrajectoryOptions& options);
 	//	void PublishSubmapList(const ::ros::WallTimerEvent& timer_event);
 	//	::cartographer::mapping::PoseExtrapolator* GetExtrapolator(int trajectory_id);
-	//	void PublishTrajectoryStates(const ::ros::WallTimerEvent& timer_event);
 	//	void PublishTrajectoryNodeList(const ::ros::WallTimerEvent& timer_event);
 	//	void PublishConstraintList(const ::ros::WallTimerEvent& timer_event);
 
@@ -95,7 +95,7 @@ private:
 	//  ::ros::Publisher scan_matched_point_cloud_publisher_;
 
 	// These are keyed with 'trajectory_id'.
-	//std::map<int, ::cartographer::mapping::PoseExtrapolator> extrapolators_;
+	std::map<int, ::cartographer::mapping::PoseExtrapolator> extrapolators_;
 	//std::unordered_map<int, std::vector<::ros::Subscriber>> subscribers_;
 	//std::unordered_set<std::string> subscribed_topics_;
 	std::unordered_map<int, bool> is_active_trajectory_ GUARDED_BY(mutex_);
