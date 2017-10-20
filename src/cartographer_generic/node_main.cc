@@ -2,7 +2,13 @@
 #include <vector>
 #include <android/log.h>
 #include <glog/logging.h>
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/StdVector>
 
+#include "../cartographer_generic_msgs/PointCloud2Iterator.h"
+#include "cartographer_generic_msgs/PointCloud2.h"
+#include "cartographer_generic_msgs/PointCloud.h"
 #include "cartographer/common/configuration_file_resolver.h"
 #include "cartographer/common/lua_parameter_dictionary.h"
 #include "cartographer/common/make_unique.h"
@@ -15,13 +21,12 @@
 #include "cartographer_generic/trajectory_options.h"
 #include "cartographer_generic_msgs/LaserScan.h"
 #include "cartographer_generic_msgs/Odometry.h"
-#include "cartographer_generic_msgs/PointCloud.h"
-#include "cartographer_generic_msgs/PointCloudIterator.h"
 #include "cartographer/mapping_2d/map_limits.h"
 #include "cartographer/mapping_2d/probability_grid.h"
 #include "cartographer_generic_msgs/SubmapQuery.h"
 #include "cartographer_generic_msgs/SubmapList.h"
 #include "cartographer_generic_msgs/MarkerArray.h"
+#include "cartographer_generic_msgs/CameraInfo.h"
 
 #if __cplusplus
 extern "C" {
@@ -37,8 +42,22 @@ string configuration_basename = "buddy_lidar_2d.lua";
 //LaserScan callback message
 ::cartographer_generic_msgs::LaserScan::Ptr laser_msg;
 ::cartographer_generic_msgs::Odometry::Ptr odom_msg;
-::cartographer_generic_msgs::PointCloud::Ptr pointcloud_msg;
+::cartographer_generic_msgs::PointCloud2::Ptr pointcloud_msg;
 ::cartographer_generic_msgs::PointField::Ptr pointfield;
+::cartographer_generic_msgs::CameraInfo::Ptr cameraInfo;
+::cartographer_generic_msgs::RegionOfInterest::Ptr roi;
+
+Eigen::Matrix3f K;
+Eigen::Vector3f worldPoint;
+Eigen::Vector3f planeCoeffs;
+Eigen::Vector3f planePassingPoint;
+Eigen::Vector4f plane;
+Eigen::Isometry3f cameraTransfom;
+Eigen::Isometry3f laserTransfom;
+
+// The 720 value defines the angular resolution
+int LASER_BUFFER_ELEMS=720;
+float laser_buffer[720];
 
 //Current submap query response
 std::vector<::cartographer_generic_msgs::SubmapQuery::Response> responses;
@@ -108,6 +127,7 @@ void _LoadLua(const char*basename, int size_basename, const char* code, int size
 Node* _Init() {
 
 	constexpr double kTfBufferCacheTimeInSeconds = 1e6;
+
 	//Init LaserScan msg constants
 	laser_msg.reset(new cartographer_generic_msgs::LaserScan());
 	laser_msg->ranges.reserve(360);
@@ -121,7 +141,8 @@ Node* _Init() {
 	laser_msg->range_min=0.449999988079;
 	laser_msg->range_max=6.0;
 
-	pointcloud_msg.reset(new cartographer_generic_msgs::PointCloud());
+	//Init PointCloud2 msg constants
+	pointcloud_msg.reset(new cartographer_generic_msgs::PointCloud2());
 	pointcloud_msg->data.reserve(612864);
 	pointcloud_msg->header.seq = 1;
 	pointcloud_msg->header.frame_id = "buddy_tablet";
@@ -173,6 +194,40 @@ Node* _Init() {
 	odom_msg->header.frame_id = "world";
 	odom_msg->child_frame_id = "buddy";
 
+	//Init DepthImage msg constants
+	cameraInfo.reset(new cartographer_generic_msgs::CameraInfo());
+	cameraInfo->header.seq=1;
+	cameraInfo->header.frame_id = "buddy_tablet";
+	cameraInfo->height = 480;
+	cameraInfo->width = 640;
+	cameraInfo->distortion_model = "plumb_bob";
+	double d_values[] = {0.0, 0.0, 0.0, 0.0, 0.0};
+	for(int i=0; i<4; i++)
+		cameraInfo->D.push_back(d_values[i]);
+	double k_values[] = {570.3422241210938, 0.0, 314.5, 0.0, 570.3422241210938, 235.5, 0.0, 0.0, 1.0};
+	for(int i=0; i<9; i++){
+		cameraInfo->K[i] = k_values[i];
+		int r = i % 3;
+		int q = i / 3;
+		K(q,r) = cameraInfo->K.c_array()[i];
+	}
+
+	double r_values[] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+	for(int i=0; i<9; i++)
+		cameraInfo->R[i] = r_values[i];
+	double p_values[] = {570.3422241210938, 0.0, 314.5, 0.0, 0.0, 570.3422241210938, 235.5, 0.0, 0.0, 0.0, 1.0, 0.0};
+	for(int i=0; i<12; i++)
+		cameraInfo->P[i] = p_values[i];
+	cameraInfo->binning_x = 0;
+	cameraInfo->binning_y = 0;
+	roi.reset(new cartographer_generic_msgs::RegionOfInterest());
+	roi->x_offset = 0;
+	roi-> y_offset = 0;
+	roi-> height = 0;
+	roi-> width = 0;
+	roi-> do_rectify = false;
+	cameraInfo->roi = *roi;
+
 	//TODO
 	//  tf2_ros::Buffer tf_buffer{::ros::Duration(kTfBufferCacheTimeInSeconds)};
 	//  tf2_ros::TransformListener tf(tf_buffer);
@@ -211,7 +266,7 @@ void _LaserScanCallback(Node* node, float* ranges, int64 time) {
 	ss << "Scan ----------------------------------------------------------------  " << counter << "\n" ;
 	ss << "Scan: [" ;
 	for(int i=0; i<360; i++){ //1° definition - LaserScan data
-		if(ranges[i] == 80)  laser_msg->ranges.push_back(std::numeric_limits<float>::infinity()) ;
+		if(ranges[i] == -1)  laser_msg->ranges.push_back(std::numeric_limits<float>::infinity()) ;
 		else laser_msg->ranges.push_back(ranges[i]) ;
 		ss << laser_msg->ranges[i] << ", ";
 	}
@@ -270,15 +325,13 @@ void _PointCloudCallback(Node* node, int* data, int64 time)
 	}
 
 	pointcloud_msg->header.stamp = ::cartographer::common::FromUniversal(time);
-
 	//Increment header sequence
 	pointcloud_msg->header.seq++;
+
 	//build laserscan scan_output
 	cartographer_generic_msgs::LaserScan::Ptr scan_output ;
 	scan_output.reset(new cartographer_generic_msgs::LaserScan());
 	scan_output->header = pointcloud_msg->header;
-	//TODO
-
 	scan_output->angle_min = angle_min;
 	scan_output->angle_max = angle_max;
 	scan_output->angle_increment = angle_increment;
@@ -295,33 +348,27 @@ void _PointCloudCallback(Node* node, int* data, int64 time)
 	uint32_t ranges_size = std::ceil((scan_output->angle_max - scan_output->angle_min) / scan_output->angle_increment);
 
 	//determine if laserscan rays with no obstacle data will evaluate to infinity or max_range
-	if (use_inf)
-	{
+	if (use_inf){
 		scan_output->ranges.assign(ranges_size, std::numeric_limits<double>::infinity());
 	}
-	else
-	{
+	else{
 		scan_output->ranges.assign(ranges_size, scan_output->range_max + 1.0);
 	}
-
 
 	std::stringstream ss;
 	ss << "Scan from point cloud ----------------------------------------------------------------  \n" ;
 	ss << "Scan: [" ;
 	// Iterate through pointcloud
-	for (::cartographer_generic_msgs::PointCloudIterator<float>
+	for (::cartographer_generic_msgs::PointCloud2Iterator<float>
 			iter_x(*pointcloud_msg, "x"), iter_y(*pointcloud_msg, "y"), iter_z(*pointcloud_msg, "z");
 			iter_x != iter_x.end();
-			++iter_x, ++iter_y, ++iter_z)
-	{
+			++iter_x, ++iter_y, ++iter_z){
 
-		if (std::isnan(*iter_x) || std::isnan(*iter_y) || std::isnan(*iter_z))
-		{
+		if (std::isnan(*iter_x) || std::isnan(*iter_y) || std::isnan(*iter_z)){
 			//LOG(INFO) << "rejected for nan in point(" << *iter_x << "," <<  *iter_y << "," <<  *iter_z << ")\n";
 			continue;
 		}
-		if (*iter_z > max_height || *iter_z < min_height)
-		{
+		if (*iter_z > max_height || *iter_z < min_height){
 			//LOG(INFO) << "rejected for height " << *iter_z << " not in range (" << min_height << "," <<  max_height << ")\n" ;
 			*iter_x = 0.0;
 			*iter_y = 0.0;
@@ -330,25 +377,20 @@ void _PointCloudCallback(Node* node, int* data, int64 time)
 		}
 
 		double range = hypot(*iter_x, *iter_y);
-		if (range < range_min)
-		{
+		if (range < range_min){
 			//LOG(INFO) << "rejected for range " << range <<" below minimum value " << range_min <<". Point: (" << *iter_x << "," << *iter_y << "," << *iter_z << ")";
 			continue;
 		}
 
 		double angle = atan2(*iter_y, *iter_x);
-
-
-		if (angle < scan_output->angle_min || angle > scan_output->angle_max)
-		{
+		if (angle < scan_output->angle_min || angle > scan_output->angle_max){
 			//LOG(INFO) << "rejected for angle " << angle << " not in range (" << scan_output->angle_min << "," <<  scan_output->angle_max << ")\n" ;
 			continue;
 		}
 
 		//overwrite range at laserscan ray if new range is smaller
 		int index = (angle - scan_output->angle_min) / scan_output->angle_increment;
-		if (range < scan_output->ranges[index])
-		{
+		if (range < scan_output->ranges[index]){
 			scan_output->ranges[index] = range;
 		}
 
@@ -368,6 +410,167 @@ void _PointCloudCallback(Node* node, int* data, int64 time)
 	node->LaserScanCallback(scan_output, trajectory_id);
 }
 
+bool convertPointCloudToPointCloud2 (const cartographer_generic_msgs::PointCloud &input, cartographer_generic_msgs::PointCloud2 &output)
+{
+  output.header = input.header;
+  output.width  = input.points.size ();
+  output.height = 1;
+  output.fields.resize (3 + input.channels.size ());
+  // Convert x/y/z to fields
+  output.fields[0].name = "x"; output.fields[1].name = "y"; output.fields[2].name = "z";
+  int offset = 0;
+  // All offsets are *4, as all field data types are float32
+  for (size_t d = 0; d < output.fields.size (); ++d, offset += 4)
+  {
+    output.fields[d].offset = offset;
+    output.fields[d].datatype = cartographer_generic_msgs::PointField::FLOAT32;
+    output.fields[d].count  = 1;
+  }
+  output.point_step = offset;
+  output.row_step   = output.point_step * output.width;
+  // Convert the remaining of the channels to fields
+  for (size_t d = 0; d < input.channels.size (); ++d)
+    output.fields[3 + d].name = input.channels[d].name;
+  output.data.resize (input.points.size () * output.point_step);
+  output.is_bigendian = false;  // @todo ?
+  output.is_dense     = false;
+
+  // Copy the data points
+  for (size_t cp = 0; cp < input.points.size (); ++cp)
+  {
+    memcpy (&output.data[cp * output.point_step + output.fields[0].offset], &input.points[cp].x, sizeof (float));
+    memcpy (&output.data[cp * output.point_step + output.fields[1].offset], &input.points[cp].y, sizeof (float));
+    memcpy (&output.data[cp * output.point_step + output.fields[2].offset], &input.points[cp].z, sizeof (float));
+    for (size_t d = 0; d < input.channels.size (); ++d)
+    {
+      if (input.channels[d].values.size() == input.points.size())
+      {
+        memcpy (&output.data[cp * output.point_step + output.fields[3 + d].offset], &input.channels[d].values[cp], sizeof (float));
+      }
+    }
+  }
+  return (true);
+}
+
+void _DepthCallback(Node* node, short* data, int64 time, float* ranges){
+	//****************************************** Transform
+	cameraTransfom.setIdentity();
+	//TODO cameraTransfom.translation() << xtion.getOrigin().x(),xtion.getOrigin().y(),xtion.getOrigin().z();
+	cameraTransfom.translation()*=1000.0f;//mm
+	cameraTransfom.translation()<<0,0,0;
+	laserTransfom.setIdentity();
+	//TODO laserTransfom.translation() << xtion2laser.getOrigin().x(),xtion2laser.getOrigin().y(),xtion2laser.getOrigin().z();
+	//Eigen::Quaternionf l(xtion2laser.getRotation().getW(),xtion2laser.getRotation().getX(),xtion2laser.getRotation().getY(),xtion2laser.getRotation().getZ());
+	//laserTransfom.linear()=l.toRotationMatrix();
+	//bringin the pointcloud into the XTION frame (not the optical one!)
+	Eigen::AngleAxisf yawAngle(0, Eigen::Vector3f::UnitZ());
+	Eigen::AngleAxisf pitchAngle(M_PI/2, Eigen::Vector3f::UnitY());
+	Eigen::AngleAxisf rollAngle(-M_PI/2, Eigen::Vector3f::UnitX());
+	Eigen::Quaternionf q = rollAngle * pitchAngle * yawAngle;
+	cameraTransfom.linear() = q.toRotationMatrix();
+
+	planeCoeffs<<0.0f,0.0f,1.0f;
+	Eigen::Isometry3f rotator;
+	rotator.setIdentity();
+	//	Eigen::Quaternionf t(xtion2laser.getRotation().getW(),
+	//			xtion2laser.getRotation().getX(),
+	//			xtion2laser.getRotation().getY(),
+	//			xtion2laser.getRotation().getZ());
+	//	rotator.linear() = t.toRotationMatrix();
+	//transforming the Z unit vector using the frame transform.
+	rotator.setIdentity();
+	planeCoeffs=rotator*planeCoeffs;
+	//std::cout<<planeCoeffs.transpose()<<std::endl;
+	planePassingPoint.setZero();
+	//planePassingPoint<<xtion2laser.getOrigin().x(),xtion2laser.getOrigin().y(),xtion2laser.getOrigin().z();
+	//std::cout<<"POINT "<<planePassingPoint<<std::endl;
+	float d = -(planePassingPoint(0)*planeCoeffs(0)+
+			planePassingPoint(1)*planeCoeffs(1)+
+			planePassingPoint(2)*planeCoeffs(2));
+	plane<<planeCoeffs(0),planeCoeffs(1),planeCoeffs(2),d;
+	//****************************************** Transform
+
+	::cartographer_generic_msgs::PointCloud depth_to_cloud;
+	::cartographer_generic_msgs::PointCloud depth_to_laser;
+	::cartographer_generic_msgs::LaserScan depth_to_scan;
+
+	//convert the image message to a standard opencv Mat.
+	//NOTE: data is immutable, it's ok with that.
+	depth_to_cloud.points.clear();
+	depth_to_laser.points.clear();
+	depth_to_scan.ranges.clear();
+	int scan_points=0;
+	float minx=0;
+	float miny=0;
+
+	float maxx=0;
+	float maxy=0;
+	cartographer_generic_msgs::Point32 point;
+
+	for(int i =0;i<480;i++){
+		for(int j=0;j<640;j++){
+			if(data[640*i+j]!=0){
+				worldPoint<<j*data[640*i+j],i*data[640*i+j],data[640*i+j];
+				worldPoint = K.inverse()*worldPoint;
+				worldPoint= cameraTransfom*worldPoint;
+				worldPoint/=1000.0f;
+				point.x=worldPoint[0];
+				point.y=worldPoint[1];
+				point.z=worldPoint[2];
+				depth_to_cloud.points.push_back(point);
+				//checking if the point lies on the requested plane.
+				//if so, i'll add it to the laser pointcloud
+				worldPoint=laserTransfom.inverse()*worldPoint;
+				point.x=worldPoint[0];
+				point.y=worldPoint[1];
+				point.z=worldPoint[2];
+				if(worldPoint[2]<=0.005f && worldPoint[2]>=-0.005f){
+					scan_points++;
+					point.x=worldPoint[0];
+					point.y=worldPoint[1];
+					point.z=worldPoint[2];
+					if(worldPoint[1]<miny){
+						miny=worldPoint[1];
+						minx=worldPoint[0];
+					}
+					if(worldPoint[1]>maxy){
+						maxy=worldPoint[1];
+						maxx=worldPoint[0];
+					}
+					depth_to_laser.points.push_back(point);
+				}
+			}
+		}
+
+	}
+	//SETTING TIMINGS
+	depth_to_cloud.header.stamp = ::cartographer::common::FromUniversal(time);
+	depth_to_laser.header.stamp = ::cartographer::common::FromUniversal(time);
+	depth_to_scan.header.stamp = ::cartographer::common::FromUniversal(time);
+	depth_to_scan.angle_min=-M_PI;
+	depth_to_scan.angle_max=M_PI;
+	depth_to_scan.range_min=0;
+	depth_to_scan.range_max=20.0f;
+	depth_to_scan.angle_increment=2*M_PI/LASER_BUFFER_ELEMS;
+
+	for(int i = 0;i<LASER_BUFFER_ELEMS;i++){
+		laser_buffer[i]=INFINITY;
+	}
+	for(int i=0;i<depth_to_laser.points.size();i++){
+		float x = depth_to_laser.points.at(i).x;
+		float y = depth_to_laser.points.at(i).y;
+		float ro   = sqrt(pow(x,2)+pow(y,2));
+		float teta = atan(y/x);
+		int angle_bin = (teta*LASER_BUFFER_ELEMS/(2*M_PI))+(LASER_BUFFER_ELEMS/2);
+		laser_buffer[angle_bin]=ro;
+
+	}
+	for(int i=0;i<LASER_BUFFER_ELEMS;i++){
+		depth_to_scan.ranges.push_back(laser_buffer[i]);
+		ranges[i] = (laser_buffer[i]==INFINITY) ? -1 : laser_buffer[i];
+	}
+
+}
 /*******************************************************************************
  * - Submap Query/Retrieve
  * HandleSubmapQuery must be call first.

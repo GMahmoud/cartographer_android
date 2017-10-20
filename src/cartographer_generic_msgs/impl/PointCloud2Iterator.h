@@ -1,10 +1,9 @@
-#ifndef CARTOGRAPHER_GENERIC_MSGS_IMPL_POINTCLOUDITERATOR_H
-#define CARTOGRAPHER_GENERIC_MSGS_IMPL_POINTCLOUDITERATOR_H
-
-#include "cartographer_generic_msgs/PointCloud.h"
+#ifndef CARTOGRAPHER_GENERIC_MSGS_IMPL_POINTCLOUD2ITERATOR_H
+#define CARTOGRAPHER_GENERIC_MSGS_IMPL_POINTCLOUD2ITERATOR_H
 
 #include <string>
 #include <vector>
+#include "cartographer_generic_msgs/PointCloud2.h"
 
 
 namespace cartographer_generic_msgs
@@ -13,13 +12,13 @@ namespace impl
 {
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-PointCloudIteratorBase<T, TT, U, C, V>::PointCloudIteratorBase() : data_char_(0), data_(0), data_end_(0)
+PointCloud2IteratorBase<T, TT, U, C, V>::PointCloud2IteratorBase() : data_char_(0), data_(0), data_end_(0)
 {
 }
 
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-PointCloudIteratorBase<T, TT, U, C, V>::PointCloudIteratorBase(C &cloud_msg, const std::string &field_name)
+PointCloud2IteratorBase<T, TT, U, C, V>::PointCloud2IteratorBase(C &cloud_msg, const std::string &field_name)
 {
   int offset = set_field(cloud_msg, field_name);
 
@@ -30,7 +29,7 @@ PointCloudIteratorBase<T, TT, U, C, V>::PointCloudIteratorBase(C &cloud_msg, con
 
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-V<T>& PointCloudIteratorBase<T, TT, U, C, V>::operator =(const V<T> &iter)
+V<T>& PointCloud2IteratorBase<T, TT, U, C, V>::operator =(const V<T> &iter)
 {
   if (this != &iter)
   {
@@ -46,19 +45,19 @@ V<T>& PointCloudIteratorBase<T, TT, U, C, V>::operator =(const V<T> &iter)
 
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-TT& PointCloudIteratorBase<T, TT, U, C, V>::operator [](size_t i) const
+TT& PointCloud2IteratorBase<T, TT, U, C, V>::operator [](size_t i) const
 {
   return *(data_ + i);
 }
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-TT& PointCloudIteratorBase<T, TT, U, C, V>::operator *() const
+TT& PointCloud2IteratorBase<T, TT, U, C, V>::operator *() const
 {
   return *data_;
 }
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-V<T>& PointCloudIteratorBase<T, TT, U, C, V>::operator ++()
+V<T>& PointCloud2IteratorBase<T, TT, U, C, V>::operator ++()
 {
   data_char_ += point_step_;
   data_ = reinterpret_cast<TT*>(data_char_);
@@ -67,7 +66,7 @@ V<T>& PointCloudIteratorBase<T, TT, U, C, V>::operator ++()
 
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-V<T> PointCloudIteratorBase<T, TT, U, C, V>::operator +(int i)
+V<T> PointCloud2IteratorBase<T, TT, U, C, V>::operator +(int i)
 {
   V<T> res = *static_cast<V<T>*>(this);
 
@@ -78,7 +77,7 @@ V<T> PointCloudIteratorBase<T, TT, U, C, V>::operator +(int i)
 }
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-V<T>& PointCloudIteratorBase<T, TT, U, C, V>::operator +=(int i)
+V<T>& PointCloud2IteratorBase<T, TT, U, C, V>::operator +=(int i)
 {
   data_char_ += i*point_step_;
   data_ = reinterpret_cast<TT*>(data_char_);
@@ -86,14 +85,14 @@ V<T>& PointCloudIteratorBase<T, TT, U, C, V>::operator +=(int i)
 }
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-bool PointCloudIteratorBase<T, TT, U, C, V>::operator !=(const V<T>& iter) const
+bool PointCloud2IteratorBase<T, TT, U, C, V>::operator !=(const V<T>& iter) const
 {
   return iter.data_ != data_;
 }
 
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-V<T> PointCloudIteratorBase<T, TT, U, C, V>::end() const
+V<T> PointCloud2IteratorBase<T, TT, U, C, V>::end() const
 {
   V<T> res = *static_cast<const V<T>*>(this);
   res.data_ = data_end_;
@@ -101,7 +100,7 @@ V<T> PointCloudIteratorBase<T, TT, U, C, V>::end() const
 }
 
 template<typename T, typename TT, typename U, typename C, template <typename> class V>
-int PointCloudIteratorBase<T, TT, U, C, V>::set_field(const PointCloud &cloud_msg, const std::string &field_name)
+int PointCloud2IteratorBase<T, TT, U, C, V>::set_field(const PointCloud2 &cloud_msg, const std::string &field_name)
 {
   is_bigendian_ = cloud_msg.is_bigendian;
   point_step_ = cloud_msg.point_step;
@@ -159,4 +158,4 @@ int PointCloudIteratorBase<T, TT, U, C, V>::set_field(const PointCloud &cloud_ms
 } // namespace impl
 } // namespace cartographer_generic_msgs
 
-#endif //CARTOGRAPHER_GENERIC_MSGS_IMPL_POINTCLOUDITERATOR_H
+#endif //CARTOGRAPHER_GENERIC_MSGS_IMPL_POINTCLOUD2ITERATOR_H
