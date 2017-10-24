@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 The Cartographer Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <string>
 #include <vector>
 #include <android/log.h>
@@ -56,8 +72,8 @@ Eigen::Isometry3f cameraTransfom;
 Eigen::Isometry3f laserTransfom;
 
 // The 720 value defines the angular resolution
-int LASER_BUFFER_ELEMS=720;
-float laser_buffer[720];
+int LASER_BUFFER_ELEMS=2047;
+float laser_buffer[2047];
 
 //Current submap query response
 std::vector<::cartographer_generic_msgs::SubmapQuery::Response> responses;
@@ -209,7 +225,8 @@ Node* _Init() {
 		cameraInfo->K[i] = k_values[i];
 		int r = i % 3;
 		int q = i / 3;
-		K(q,r) = cameraInfo->K.c_array()[i];
+		K(q,r) = k_values[i];
+		LOG(INFO) << "K(" << q << "," << r << ") = " << K(q,r);
 	}
 
 	double r_values[] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
@@ -412,56 +429,62 @@ void _PointCloudCallback(Node* node, int* data, int64 time)
 
 bool convertPointCloudToPointCloud2 (const cartographer_generic_msgs::PointCloud &input, cartographer_generic_msgs::PointCloud2 &output)
 {
-  output.header = input.header;
-  output.width  = input.points.size ();
-  output.height = 1;
-  output.fields.resize (3 + input.channels.size ());
-  // Convert x/y/z to fields
-  output.fields[0].name = "x"; output.fields[1].name = "y"; output.fields[2].name = "z";
-  int offset = 0;
-  // All offsets are *4, as all field data types are float32
-  for (size_t d = 0; d < output.fields.size (); ++d, offset += 4)
-  {
-    output.fields[d].offset = offset;
-    output.fields[d].datatype = cartographer_generic_msgs::PointField::FLOAT32;
-    output.fields[d].count  = 1;
-  }
-  output.point_step = offset;
-  output.row_step   = output.point_step * output.width;
-  // Convert the remaining of the channels to fields
-  for (size_t d = 0; d < input.channels.size (); ++d)
-    output.fields[3 + d].name = input.channels[d].name;
-  output.data.resize (input.points.size () * output.point_step);
-  output.is_bigendian = false;  // @todo ?
-  output.is_dense     = false;
+	output.header = input.header;
+	output.width  = input.points.size ();
+	output.height = 1;
+	output.fields.resize (3 + input.channels.size ());
+	// Convert x/y/z to fields
+	output.fields[0].name = "x"; output.fields[1].name = "y"; output.fields[2].name = "z";
+	int offset = 0;
+	// All offsets are *4, as all field data types are float32
+	for (size_t d = 0; d < output.fields.size (); ++d, offset += 4)
+	{
+		output.fields[d].offset = offset;
+		output.fields[d].datatype = cartographer_generic_msgs::PointField::FLOAT32;
+		output.fields[d].count  = 1;
+	}
+	output.point_step = offset;
+	output.row_step   = output.point_step * output.width;
+	// Convert the remaining of the channels to fields
+	for (size_t d = 0; d < input.channels.size (); ++d)
+		output.fields[3 + d].name = input.channels[d].name;
+	output.data.resize (input.points.size () * output.point_step);
+	output.is_bigendian = false;  // @todo ?
+	output.is_dense     = false;
 
-  // Copy the data points
-  for (size_t cp = 0; cp < input.points.size (); ++cp)
-  {
-    memcpy (&output.data[cp * output.point_step + output.fields[0].offset], &input.points[cp].x, sizeof (float));
-    memcpy (&output.data[cp * output.point_step + output.fields[1].offset], &input.points[cp].y, sizeof (float));
-    memcpy (&output.data[cp * output.point_step + output.fields[2].offset], &input.points[cp].z, sizeof (float));
-    for (size_t d = 0; d < input.channels.size (); ++d)
-    {
-      if (input.channels[d].values.size() == input.points.size())
-      {
-        memcpy (&output.data[cp * output.point_step + output.fields[3 + d].offset], &input.channels[d].values[cp], sizeof (float));
-      }
-    }
-  }
-  return (true);
+	// Copy the data points
+	for (size_t cp = 0; cp < input.points.size (); ++cp)
+	{
+		memcpy (&output.data[cp * output.point_step + output.fields[0].offset], &input.points[cp].x, sizeof (float));
+		memcpy (&output.data[cp * output.point_step + output.fields[1].offset], &input.points[cp].y, sizeof (float));
+		memcpy (&output.data[cp * output.point_step + output.fields[2].offset], &input.points[cp].z, sizeof (float));
+		for (size_t d = 0; d < input.channels.size (); ++d)
+		{
+			if (input.channels[d].values.size() == input.points.size())
+			{
+				memcpy (&output.data[cp * output.point_step + output.fields[3 + d].offset], &input.channels[d].values[cp], sizeof (float));
+			}
+		}
+	}
+	return (true);
 }
 
-void _DepthCallback(Node* node, short* data, int64 time, float* ranges){
+void _DepthImageCallback(Node* node, short* data, int64 time, float* ranges){
+	LOG(INFO) << "HERE ";
 	//****************************************** Transform
 	cameraTransfom.setIdentity();
 	//TODO cameraTransfom.translation() << xtion.getOrigin().x(),xtion.getOrigin().y(),xtion.getOrigin().z();
+	cameraTransfom.translation() << 0.0,0.0,0.0;
 	cameraTransfom.translation()*=1000.0f;//mm
 	cameraTransfom.translation()<<0,0,0;
 	laserTransfom.setIdentity();
 	//TODO laserTransfom.translation() << xtion2laser.getOrigin().x(),xtion2laser.getOrigin().y(),xtion2laser.getOrigin().z();
 	//Eigen::Quaternionf l(xtion2laser.getRotation().getW(),xtion2laser.getRotation().getX(),xtion2laser.getRotation().getY(),xtion2laser.getRotation().getZ());
 	//laserTransfom.linear()=l.toRotationMatrix();
+	laserTransfom.translation() << 0.0,0.0,0.0;
+	Eigen::Quaternionf l(1.0,0.0,0.0,0.0);
+	laserTransfom.linear()=l.toRotationMatrix();
+
 	//bringin the pointcloud into the XTION frame (not the optical one!)
 	Eigen::AngleAxisf yawAngle(0, Eigen::Vector3f::UnitZ());
 	Eigen::AngleAxisf pitchAngle(M_PI/2, Eigen::Vector3f::UnitY());
@@ -477,12 +500,15 @@ void _DepthCallback(Node* node, short* data, int64 time, float* ranges){
 	//			xtion2laser.getRotation().getY(),
 	//			xtion2laser.getRotation().getZ());
 	//	rotator.linear() = t.toRotationMatrix();
+	Eigen::Quaternionf t(1.0, 0.0, 0.0, 0.0);
+	rotator.linear() = t.toRotationMatrix();
 	//transforming the Z unit vector using the frame transform.
 	rotator.setIdentity();
 	planeCoeffs=rotator*planeCoeffs;
 	//std::cout<<planeCoeffs.transpose()<<std::endl;
 	planePassingPoint.setZero();
 	//planePassingPoint<<xtion2laser.getOrigin().x(),xtion2laser.getOrigin().y(),xtion2laser.getOrigin().z();
+	planePassingPoint<<0.0,0.0,0.0;
 	//std::cout<<"POINT "<<planePassingPoint<<std::endl;
 	float d = -(planePassingPoint(0)*planeCoeffs(0)+
 			planePassingPoint(1)*planeCoeffs(1)+
@@ -493,6 +519,7 @@ void _DepthCallback(Node* node, short* data, int64 time, float* ranges){
 	::cartographer_generic_msgs::PointCloud depth_to_cloud;
 	::cartographer_generic_msgs::PointCloud depth_to_laser;
 	::cartographer_generic_msgs::LaserScan depth_to_scan;
+
 
 	//convert the image message to a standard opencv Mat.
 	//NOTE: data is immutable, it's ok with that.
@@ -506,24 +533,40 @@ void _DepthCallback(Node* node, short* data, int64 time, float* ranges){
 	float maxx=0;
 	float maxy=0;
 	cartographer_generic_msgs::Point32 point;
+//	std::stringstream ss2;
+//	ss2 << "K : " << K << std::endl;
+//	ss2 << "xtionTransfom: " << cameraTransfom.matrix() << "\n";
+//	ss2 << "laserTransfom: " << laserTransfom.matrix() << "\n";
+//	ss2 << "plane: " << plane << "\n";
+//	ss2 << "planeCoeffs: " << planeCoeffs << "\n";
+//	LOG(INFO) << ss2.str();
 
-	for(int i =0;i<480;i++){
-		for(int j=0;j<640;j++){
-			if(data[640*i+j]!=0){
-				worldPoint<<j*data[640*i+j],i*data[640*i+j],data[640*i+j];
+	for(int i = 0;i<LASER_BUFFER_ELEMS;i++){
+			laser_buffer[i]=INFINITY;
+	}
+	float x, y, teta, ro;
+	int angle_bin;
+	for(int i =cameraInfo->height/3;i<2*cameraInfo->height/3;++i){
+		for(int j=0;j<cameraInfo->width;++j){
+			if(data[cameraInfo->width*i+j]!=0){
+				worldPoint<<j*data[cameraInfo->width*i+j],i*data[cameraInfo->width*i+j],data[cameraInfo->width*i+j];
+				//LOG(INFO) << "worldPoint before = " << worldPoint;
 				worldPoint = K.inverse()*worldPoint;
 				worldPoint= cameraTransfom*worldPoint;
+				//LOG(INFO) << "worldPoint after = " << worldPoint;
 				worldPoint/=1000.0f;
-				point.x=worldPoint[0];
-				point.y=worldPoint[1];
-				point.z=worldPoint[2];
-				depth_to_cloud.points.push_back(point);
+//				point.x=worldPoint[0];
+//				point.y=worldPoint[1];
+//				point.z=worldPoint[2];
+				//depth_to_cloud.points.push_back(point);
+
 				//checking if the point lies on the requested plane.
 				//if so, i'll add it to the laser pointcloud
-				worldPoint=laserTransfom.inverse()*worldPoint;
-				point.x=worldPoint[0];
-				point.y=worldPoint[1];
-				point.z=worldPoint[2];
+
+				//worldPoint=laserTransfom.inverse()*worldPoint;
+//				point.x=worldPoint[0];
+//				point.y=worldPoint[1];
+//				point.z=worldPoint[2];
 				if(worldPoint[2]<=0.005f && worldPoint[2]>=-0.005f){
 					scan_points++;
 					point.x=worldPoint[0];
@@ -538,6 +581,12 @@ void _DepthCallback(Node* node, short* data, int64 time, float* ranges){
 						maxx=worldPoint[0];
 					}
 					depth_to_laser.points.push_back(point);
+					x = point.x;
+					y = point.y;
+					ro   = sqrt(pow(x,2)+pow(y,2));
+					teta = atan(y/x);
+					angle_bin = (teta*LASER_BUFFER_ELEMS/(2*M_PI))+(LASER_BUFFER_ELEMS/2);
+					laser_buffer[angle_bin]=ro;
 				}
 			}
 		}
@@ -553,22 +602,39 @@ void _DepthCallback(Node* node, short* data, int64 time, float* ranges){
 	depth_to_scan.range_max=20.0f;
 	depth_to_scan.angle_increment=2*M_PI/LASER_BUFFER_ELEMS;
 
-	for(int i = 0;i<LASER_BUFFER_ELEMS;i++){
-		laser_buffer[i]=INFINITY;
-	}
-	for(int i=0;i<depth_to_laser.points.size();i++){
-		float x = depth_to_laser.points.at(i).x;
-		float y = depth_to_laser.points.at(i).y;
-		float ro   = sqrt(pow(x,2)+pow(y,2));
-		float teta = atan(y/x);
-		int angle_bin = (teta*LASER_BUFFER_ELEMS/(2*M_PI))+(LASER_BUFFER_ELEMS/2);
-		laser_buffer[angle_bin]=ro;
-
-	}
+//	for(int i=0;i<depth_to_laser.points.size();i++){
+//		float x = depth_to_laser.points.at(i).x;
+//		float y = depth_to_laser.points.at(i).y;
+//		float ro   = sqrt(pow(x,2)+pow(y,2));
+//		float teta = atan(y/x);
+//		int angle_bin = (teta*LASER_BUFFER_ELEMS/(2*M_PI))+(LASER_BUFFER_ELEMS/2);
+//		laser_buffer[angle_bin]=ro;
+//
+//	}
+//	for(int i = 0;i<LASER_BUFFER_ELEMS;i++){
+//			laser_buffer[i]=INFINITY;
+//	}
+	std::stringstream ss;
+	ss << "Scan ----------------------------------------------------------------  " << counter << "\n" ;
+	ss << "Scan: [" ;
+	int j = 0;
 	for(int i=0;i<LASER_BUFFER_ELEMS;i++){
 		depth_to_scan.ranges.push_back(laser_buffer[i]);
 		ranges[i] = (laser_buffer[i]==INFINITY) ? -1 : laser_buffer[i];
+		if(ranges[i] == -1)  j++;
+		else{
+			if(j != 0){
+				ss << "(inf x " << j <<")," << ranges[i] << ", ";
+				j = 0;
+			}
+			else ss  << ranges[i] << ", ";
+			j = 0;
+		}
 	}
+	if(j != 0) ss << "(inf x " << j <<")" ;
+	ss << "], Time: " << time ;
+
+	LOG(INFO) << ss.str();
 
 }
 /*******************************************************************************
@@ -652,7 +718,6 @@ void _GetSubmapPose(Node* node, double* pose, int submap_index)
 //Retrieve occupancy grid
 //intensity and alpha channels are converted form uint8 (char) to int
 void _GetOccupancyGrid (int* intensity, int* alpha, int submap_index) {
-	std::stringstream ss1, ss2, ss3;
 	for (int i = 0; i < responses[submap_index].height; ++i) {
 		for (int j = 0; j < responses[submap_index].width; ++j) {
 			intensity[i*responses[submap_index].width + j] = static_cast<int>(responses[submap_index].cells[(i * responses[submap_index].width + j) * 2]);
